@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'github-to-canvas'
-  s.version = '0.0.8'
+  s.version = '0.0.9'
   s.date = '2020-05-12'
   s.authors = ['maxwellbenton']
   s.email = 'maxwell@flatironschool.com'
