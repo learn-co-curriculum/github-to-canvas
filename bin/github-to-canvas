@@ -74,7 +74,7 @@ if options[:version]
   GithubToCanvas.new(mode: 'version',  course: nil)
 end
 
-if Dir.entries(Dir.pwd).select {|entry| File.directory? entry and !(entry =='.' || entry == '..')}.empty?
+if Dir.glob("**/*/").empty?
   options[:type] = "page"
 else
   options[:type] = "assignment"
