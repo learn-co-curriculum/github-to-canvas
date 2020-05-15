@@ -1,0 +1,101 @@
+#!/usr/bin/env ruby
+
+require 'optparse'
+require 'github-to-canvas'
+
+options = {}
+OptionParser.new do |opts|
+  opts.banner = <<-EOBANNER
+    GitHub To Canvas
+    ====================
+    A tool for migrating and aligning GitHub content with the Canvas LMS. Access
+    to the Canvas API and a GitHub org required. For configuration and setup, visit
+    https://github.com/learn-co-curriculum/github-to-canvas
+
+    Commands:
+    github-to-canvas --create COURSE
+    github-to-canvas --create COURSE [--branch BRANCH]
+    github-to-canvas --create COURSE [--branch BRANCH] [--name NAME]
+    github-to-canvas --create COURSE [--branch BRANCH] [--name NAME] [--type TYPE]
+    github-to-canvas --align
+    github-to-canvas --reverse-align 
+    github-to-canvas --version
+    
+    Run these commands from inside a local GitHub repository. This gem is built for Flatiron School's internal use.
+    Some default behaviors assume this, like the default Canvas API path.
+
+    Example usage:
+
+    github-to-canvas --create 154                                      -> Creates a lesson in course 154, deriving the name and type from the local repo
+    github-to-canvas --create 154 --name "Fetch Lab"                   -> Creates a lesson in course 154 with the provided name, deriving the type from the local repo
+    github-to-canvas --create 154 --name "Fetch Lab" --type assignment -> Creates an assignment in course 154 with the provided name
+    github-to-canvas --create 154 --name "Fetch Lab" --branch solution -> Creates a lesson in course 154 with the provided name, using the repositorie's solution branch and deriving the type from the local repo
+    
+  EOBANNER
+
+  opts.on("-cCOURSE", "--create COURSE", 
+          "Creates a new canvas lesson, converting the local repository's README.md to HTML. Adds .canvas file to remote repository") do |course| 
+            options[:create] = true
+            options[:course] = course
+          end
+  opts.on("-bBRANCH", "--branch BRANCH", 
+          "Sets the repository branch used for lesson creation") do |branch| 
+            options[:branch] = branch
+          end
+  opts.on("-nNAME", "--name NAME", 
+          "Sets the name of the new Canvas lesson to be created. If no name is given, repository folder name is used") do |name| 
+            options[:name] = name
+          end
+  opts.on("-tTYPE", "--type TYPE", 
+          "Sets the type Canvas lesson to be created (page or assignment). If no type, type decided based on repository structure") do |type| 
+            if t == 'page' || t == 'assignment'
+              options[:type] = type
+            else
+              puts "Invalid type. Defaulting to page"
+              options[:type] = "page"
+            end
+          end
+  opts.on("-a", "--align", 
+          "Updates a canvas lesson based on the local repository's README.md") do |a|
+            options[:align] = true 
+          end
+  opts.on("-r", "--reverse-align",
+          "Updates a remote repository, converting the Canvas lesson body to markdown and pushing it remotely as the README.md") do |r| 
+            options[:reverse_align] = true 
+          end
+  opts.on("-v", "--version",
+          "Displays current gem version") do |v|
+            options[:version] = true
+          end
+  
+end.parse!
+
+if options[:version]
+  GithubToCanvas.new(mode: 'version',  course: nil)
+end
+
+if Dir.entries(Dir.pwd).select {|entry| File.directory? entry and !(entry =='.' || entry == '..')}.empty?
+  options[:type] = "page"
+else
+  options[:type] = "assignment"
+end
+
+if !options[:branch]
+  options[:branch] = 'master'
+end
+
+if !options[:name]
+  options[:name] = File.basename(Dir.getwd)
+end
+
+if options[:create]
+  GithubToCanvas.new(mode: "create", course: options[:course], filepath: Dir.pwd, branch: options[:branch], name: options[:name], type: options[:type])
+end
+
+if options[:align]
+  puts 'feature not working yet'
+end
+
+if options[:reverse_align]
+  puts 'feature not working yet'
+end
