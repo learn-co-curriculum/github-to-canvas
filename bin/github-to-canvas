@@ -17,6 +17,7 @@ OptionParser.new do |opts|
     github-to-canvas --create COURSE [--branch BRANCH]
     github-to-canvas --create COURSE [--branch BRANCH] [--name NAME]
     github-to-canvas --create COURSE [--branch BRANCH] [--name NAME] [--type TYPE]
+    github-to-canvas --create COURSE [--dry-run]
     github-to-canvas --align
     github-to-canvas --reverse-align 
     github-to-canvas --version
@@ -67,6 +68,10 @@ OptionParser.new do |opts|
           "Displays current gem version") do |v|
             options[:version] = true
           end
+  opts.on("-d", "--dry-run",
+          "Runs through creation without pushing to Canvas or GitHub") do |v|
+            options[:dry] = true
+          end
   
 end.parse!
 
@@ -89,7 +94,7 @@ if !options[:name]
 end
 
 if options[:create]
-  GithubToCanvas.new(mode: "create", course: options[:course], filepath: Dir.pwd, branch: options[:branch], name: options[:name], type: options[:type])
+  GithubToCanvas.new(mode: "create", course: options[:course], filepath: Dir.pwd, branch: options[:branch], name: options[:name], type: options[:type], dry: !!options[:dry])
 end
 
 if options[:align]
