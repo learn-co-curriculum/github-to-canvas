@@ -1,6 +1,6 @@
 require 'json'
 require 'rest-client'
-
+require 'byebug'
 class CanvasInterface
 
   def self.submit_to_canvas(course, type, name, readme, dry_run = false)
@@ -8,7 +8,8 @@ class CanvasInterface
       puts 'DRY RUN: Skipping push to Canvas'
     else
       response = self.push_to_canvas(course, type, name, readme)
-      if response.code != 200
+      if response.code != 200 || response.code != 201
+        byebug
         puts "Canvas push failed. #{response.code} status code returned "
         abort
       end
@@ -32,6 +33,13 @@ class CanvasInterface
     end
 
     RestClient.post(url, payload, headers={
+      "Authorization" => "Bearer #{ENV['CANVAS_API_KEY']}"
+    })
+  end
+
+  def self.update_existing_lesson(course_id, page_id, type, name, new_readme, dry_run)
+    url = "#{ENV['CANVAS_API_PATH']}/courses/#{course}/#{type}s/#{page_id}"
+    RestClient.put(url, payload, headers={
       "Authorization" => "Bearer #{ENV['CANVAS_API_KEY']}"
     })
   end
