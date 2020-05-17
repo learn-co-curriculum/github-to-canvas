@@ -8,8 +8,7 @@ class CanvasInterface
       puts 'DRY RUN: Skipping push to Canvas'
     else
       response = self.push_to_canvas(course, type, name, readme)
-      if response.code != 200 || response.code != 201
-        byebug
+      if ![200, 201].include? response.code
         puts "Canvas push failed. #{response.code} status code returned "
         abort
       end
