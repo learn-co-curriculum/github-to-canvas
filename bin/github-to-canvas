@@ -19,7 +19,6 @@ OptionParser.new do |opts|
     github-to-canvas --create COURSE [--branch BRANCH] [--name NAME] [--type TYPE]
     github-to-canvas --create COURSE [--dry-run]
     github-to-canvas --align
-    github-to-canvas --reverse-align 
     github-to-canvas --version
     
     Run these commands from inside a local GitHub repository. This gem is built for Flatiron School's internal use.
@@ -60,10 +59,6 @@ OptionParser.new do |opts|
           "Updates a canvas lesson based on the local repository's README.md") do |a|
             options[:align] = true 
           end
-  opts.on("-r", "--reverse-align",
-          "Updates a remote repository, converting the Canvas lesson body to markdown and pushing it remotely as the README.md") do |r| 
-            options[:reverse_align] = true 
-          end
   opts.on("-v", "--version",
           "Displays current gem version") do |v|
             options[:version] = true
@@ -98,9 +93,8 @@ if options[:create]
 end
 
 if options[:align]
-  puts 'feature not working yet'
-end
-
-if options[:reverse_align]
-  puts 'feature not working yet'
+  if options[:create]
+    GithubToCanvas.new(mode: "align", course: nil, filepath: Dir.pwd, branch: options[:branch], name: options[:name], type: options[:type], dry: !!options[:dry])
+  end
+  
 end
