@@ -1,28 +1,20 @@
 require 'yaml'
-
+require 'byebug'
 class CanvasDotfile
 
-  def self.update_or_create(filepath, response, course)
+  def self.update_or_create(filepath, response, course, type)
     if File.file?(".canvas")
-      canvas_data = YAML.load(File.read(".canvas"))
-      if canvas_data[:lessons].none? { |lesson| lesson[:page_id] == response['page_id'] && lesson[:course_id] == course.to_i && lesson[:canvas_url] == response['html_url']}
-        lesson_data = {
-          page_id: [response['page_id']],
-          course_id: [course.to_i],
-          canvas_url: [response['html_url']]
-        }  
-        canvas_data[:lessons] << lesson_data
+      if type == "assignment"
+        canvas_data = self.update_assignment_data(response, course)
+      else
+        canvas_data = self.update_page_data(response, course)
       end
     else
-      canvas_data = {
-        lessons: [
-          {
-            page_id: [response['page_id']],
-            course_id: [course.to_i],
-            canvas_url: [response['html_url']]
-          }
-        ]
-      }
+      if type == "assignment"
+        canvas_data = self.create_assignment_data(response, course)
+      else
+        canvas_data = self.create_page_data(response, course)
+      end
     end
     self.create_canvas_dotfile(filepath, canvas_data)
   end
@@ -44,4 +36,63 @@ class CanvasDotfile
       abort
     end
   end
+
+  def self.update_assignment_data(response, course, type)
+    canvas_data = YAML.load(File.read(".canvas"))
+    if canvas_data[:lessons].none? { |lesson| lesson[:id] == response['id'] && lesson[:course_id] == course.to_i && lesson[:canvas_url] == response['html_url']}
+      lesson_data = {
+        id: [response['id']],
+        course_id: [course.to_i],
+        canvas_url: [response['html_url']],
+        type: type
+      }  
+      canvas_data[:lessons] << lesson_data
+    end
+    canvas_data
+  end
+
+  def self.create_assignment_data(response, course, type)
+    {
+      lessons: [
+        {
+          id: [response['id']],
+          course_id: [course.to_i],
+          canvas_url: [response['html_url']],
+          type: type
+        }
+      ]
+    }
+  end
+
+  def self.update_page_data(response, course, type)
+    canvas_data = YAML.load(File.read(".canvas"))
+    if canvas_data[:lessons].none? { |lesson| lesson[:page_id] == response['page_id'] && lesson[:course_id] == course.to_i && lesson[:canvas_url] == response['html_url']}
+      lesson_data = {
+        page_id: [response['page_id']],
+        course_id: [course.to_i],
+        canvas_url: [response['html_url']],
+        type: type
+      }  
+      canvas_data[:lessons] << lesson_data
+    end
+    canvas_data
+  end
+
+  def self.create_page_data(response, course, type)
+    {
+      lessons: [
+        {
+          page_id: [response['page_id']],
+          course_id: [course.to_i],
+          canvas_url: [response['html_url']],
+          type: type
+        }
+      ]
+    }
+  end
 end
+
+# 
+#       
+#     else
+#       
