@@ -17,7 +17,7 @@ class CreateCanvasLesson
     if dry_run
       puts 'DRY RUN: Skipping dotfile creation and push to GitHub'
     else
-      CanvasDotfile.update_or_create(filepath, response, course)
+      CanvasDotfile.update_or_create(filepath, response, course, type)
       CanvasDotfile.commit_canvas_dotfile(filepath)
       GithubInterface.git_push(filepath, branch)
     end
