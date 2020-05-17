@@ -93,8 +93,5 @@ if options[:create]
 end
 
 if options[:align]
-  if options[:create]
-    GithubToCanvas.new(mode: "align", course: nil, filepath: Dir.pwd, branch: options[:branch], name: options[:name], type: options[:type], dry: !!options[:dry])
-  end
-  
+  GithubToCanvas.new(mode: "align", course: nil, filepath: Dir.pwd, branch: options[:branch], name: options[:name], type: options[:type], dry: !!options[:dry])
 end
