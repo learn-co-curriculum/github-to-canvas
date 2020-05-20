@@ -31,7 +31,7 @@ called `CANVAS_API_KEY`. Use the following command to add your new key to
 `~/.zshrc`:
 
 ```sh
-echo "$(echo 'CANVAS_API_KEY=<your-new-API-key-here>' | cat  - ~/.zshrc)" > ~/.zshrc
+echo "$(export 'CANVAS_API_KEY=<your-new-API-key-here>' | cat  - ~/.zshrc)" > ~/.zshrc
 ```
 
 > **Note:** The command above assumes you are using Zsh. Change the dotfile if
@@ -44,7 +44,7 @@ Flatiron School's base path is `https://learning.flatironschool.com/api/v1`. Add
 as an `ENV` variable like the API key. **Do not add a `/` at the end after `/api/v1`.**
 
 ```sh
-echo "$(echo 'CANVAS_API_PATH=<your-base-api-path>' | cat  - ~/.zshrc)" > ~/.zshrc
+echo "$(export 'CANVAS_API_PATH=<your-base-api-path>' | cat  - ~/.zshrc)" > ~/.zshrc
 ```
 
 After both the API key and path are added to `~/.zshrc`, run `source ~/.zshrc`
