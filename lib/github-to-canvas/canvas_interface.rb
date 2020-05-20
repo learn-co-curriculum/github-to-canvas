@@ -1,6 +1,6 @@
 require 'json'
 require 'rest-client'
-require 'byebug'
+
 class CanvasInterface
 
   def self.submit_to_canvas(course_id, type, name, readme, dry_run = false)

@@ -1,5 +1,5 @@
 require 'yaml'
-require 'byebug'
+
 class CanvasDotfile
 
   def self.update_or_create(filepath, response, course, type)
