@@ -13,7 +13,7 @@ class GithubInterface
   end
 
   def self.git_co_branch(filepath, branch)
-    branch = self.cd_into_and(filepath, "git co #{branch}")
+    branch = self.cd_into_and(filepath, "git checkout #{branch}")
     if branch.to_s.strip.empty?
       puts "#{branch} branch not found. Exiting..."
       abort
