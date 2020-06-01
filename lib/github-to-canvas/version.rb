@@ -1,3 +1,3 @@
-class LearnTool
-  VERSION = "0.0.12"
+class GithubToCanvas
+  VERSION = "0.0.15"
 end
