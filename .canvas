@@ -1,14 +1,10 @@
 ---
 :lessons:
-- :id: 4987
-  :course_id: 154
-  :canvas_url: https://learning.flatironschool.com/courses/154/assignments/4987
-  :type: assignment
-- :id: 5094
-  :course_id: 154
-  :canvas_url: https://learning.flatironschool.com/courses/154/assignments/5094
-  :type: assignment
 - :id: 5699
   :course_id: 154
   :canvas_url: https://learning.flatironschool.com/courses/154/assignments/5699
+  :type: assignment
+- :id: 5700
+  :course_id: 154
+  :canvas_url: https://learning.flatironschool.com/courses/154/assignments/5700
   :type: assignment
