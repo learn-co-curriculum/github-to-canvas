@@ -106,5 +106,17 @@ You can override the default behaviors with the following arguments:
   appropriate Canvas lesson type instead of relying on the repository's
   directory structure
 
+## Examples of Valid Images This Gem Can Convert
+
+Inline Markdown:
+
+![example in-line image](https://curriculum-content.s3.amazonaws.com/fewpjs/fewpjs-fetch-lab/Image_25_AsynchronousJavaScript.png)
+
+HTML:
+
+<p align="center">
+  <img src="https://curriculum-content.s3.amazonaws.com/fewpjs/fewpjs-fetch-lab/Image_25_AsynchronousJavaScript.png" width="500">
+</p>
+
 [Canvas LMS API]: https://canvas.instructure.com/doc/api/index.html
 [Flatiron School]: https://flatironschool.com/
