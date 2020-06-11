@@ -17,20 +17,31 @@ class CanvasInterface
   end
 
   def self.push_to_canvas(course_id, type, name, new_readme)
-    url = "#{ENV['CANVAS_API_PATH']}/courses/#{course_id}/#{type}s"
+    if type == 'discussion'
+      url = "#{ENV['CANVAS_API_PATH']}/courses/#{course_id}/#{type}_topics"
+    else
+      url = "#{ENV['CANVAS_API_PATH']}/courses/#{course_id}/#{type}s"
+    end
     payload = self.build_payload(type, name, new_readme)
-
-    RestClient.post(url, payload, headers={
-      "Authorization" => "Bearer #{ENV['CANVAS_API_KEY']}"
-    })
+    begin
+      RestClient.post(url, payload, headers={
+        "Authorization" => "Bearer #{ENV['CANVAS_API_KEY']}"
+      })
+    rescue
+      puts "Something went wrong while pushing lesson #{id} to course #{course_id}"
+    end
   end
 
   def self.update_existing_lesson(course_id, id, type, name, new_readme, dry_run)
     url = "#{ENV['CANVAS_API_PATH']}/courses/#{course_id}/#{type}s/#{id}"
     payload = self.build_payload(type, name, new_readme)
-    RestClient.put(url, payload, headers={
-      "Authorization" => "Bearer #{ENV['CANVAS_API_KEY']}"
-    })
+    begin
+      RestClient.put(url, payload, headers={
+        "Authorization" => "Bearer #{ENV['CANVAS_API_KEY']}"
+      })
+    rescue
+      puts "Something went wrong while pushing lesson #{id} to course #{course_id}"
+    end
   end
 
   def self.build_payload(type, name, new_readme)
@@ -38,6 +49,11 @@ class CanvasInterface
       payload = {
         'assignment[name]' => name,
         'assignment[description]' => new_readme
+      }
+    elsif type == "discussion"
+      payload = {
+        'title' => name,
+        'message' => new_readme
       }
     else
       payload = {
