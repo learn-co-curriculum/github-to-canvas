@@ -1,10 +1,5 @@
-
+require 'byebug'
 class GithubInterface
-
-  def self.get_updated_repo(filepath, branch)
-   self.git_co_branch(filepath, branch)
-   self.git_pull(filepath, branch)
-  end
 
   def self.cd_into_and(filepath, command)
     cmd = "cd #{filepath} && #{command}"
@@ -12,9 +7,20 @@ class GithubInterface
     `#{cmd}`
   end
 
+  def self.get_updated_repo(filepath, branch)
+   self.git_co_branch(filepath, branch)
+   self.git_pull(filepath, branch)
+  end
+
+  def self.get_current_branch(filepath)
+    self.cd_into_and(filepath, "git rev-parse --abbrev-ref HEAD")
+  end
+
   def self.git_co_branch(filepath, branch)
-    branch = self.cd_into_and(filepath, "git checkout #{branch}")
-    if branch.to_s.strip.empty?
+    self.cd_into_and(filepath, "git checkout #{branch}")
+    current_branch = self.get_current_branch(filepath)
+    puts "Current branch #{current_branch.strip}"
+    if !current_branch.match(branch)
       puts "#{branch} branch not found. Exiting..."
       abort
     end
