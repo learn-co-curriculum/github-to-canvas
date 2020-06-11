@@ -18,19 +18,27 @@ OptionParser.new do |opts|
     github-to-canvas --create COURSE [--branch BRANCH] [--name NAME]
     github-to-canvas --create COURSE [--branch BRANCH] [--name NAME] [--type TYPE]
     github-to-canvas --create COURSE [--dry-run]
+    github-to-canvas --create COURSE [--fis-links]
+    github-to-canvas --create COURSE [--fis-links] [--remove-header]
     github-to-canvas --align
+    github-to-canvas --align [--branch BRANCH]
+    github-to-canvas --align [--branch BRANCH] [--fis-links]
     github-to-canvas --version
+
     
     Run these commands from inside a local GitHub repository. This gem is built for Flatiron School's internal use.
     Some default behaviors assume this, like the default Canvas API path.
 
     Example usage:
 
-    github-to-canvas --create 154                                      -> Creates a lesson in course 154, deriving the name and type from the local repo
-    github-to-canvas --create 154 --name "Fetch Lab"                   -> Creates a lesson in course 154 with the provided name, deriving the type from the local repo
+    github-to-canvas --create 154                                      -> Creates a lesson in course 154, derives the name and type from the local repo
+    github-to-canvas --create 154 --name "Fetch Lab"                   -> Creates a lesson in course 154 with the provided name, derives the type from the local repo
     github-to-canvas --create 154 --name "Fetch Lab" --type assignment -> Creates an assignment in course 154 with the provided name
-    github-to-canvas --create 154 --name "Fetch Lab" --branch solution -> Creates a lesson in course 154 with the provided name, using the repositorie's solution branch and deriving the type from the local repo
-    
+    github-to-canvas --create 154 --name "Fetch Lab" --branch solution -> Creates a lesson in course 154 with the provided name, uses the repository's solution branch and derives the type from the local repo
+    github-to-canvas --align                                           -> Patches existing lessons in Canvas based on the .canvas file  
+    github-to-canvas --align --fis-links                               -> Patches existing lessons in Canvas based on the .canvas file, adds addition Flatiron School specific HTML
+    github-to-canvas --align --remove-header                           -> Patches existing lessons in Canvas based on the .canvas file, removes top lesson header before converting to HTML
+
   EOBANNER
 
   opts.on("-cCOURSE", "--create COURSE", 
@@ -48,7 +56,7 @@ OptionParser.new do |opts|
           end
   opts.on("-tTYPE", "--type TYPE", 
           "Sets the type Canvas lesson to be created (page or assignment). If no type, type decided based on repository structure") do |type| 
-            if t == 'page' || t == 'assignment'
+            if type == 'page' || type == 'assignment' || type == 'discussion'
               options[:type] = type
             else
               puts "Invalid type. Defaulting to page"
@@ -64,8 +72,16 @@ OptionParser.new do |opts|
             options[:version] = true
           end
   opts.on("-d", "--dry-run",
-          "Runs through creation without pushing to Canvas or GitHub") do |v|
+          "Runs through creation without pushing to Canvas or GitHub") do |d|
             options[:dry] = true
+          end
+  opts.on("-f", "--fis-links",
+          "Adds additional Flatiron School HTML after markdown conversion") do |f|
+            options[:fis] = true
+          end
+  opts.on("-r", "--remove-header",
+          "Removes top lesson header before converting to HTML") do |r|
+            options[:remove_header] = true
           end
   
 end.parse!
@@ -74,10 +90,12 @@ if options[:version]
   GithubToCanvas.new(mode: 'version',  course: nil)
 end
 
-if Dir.glob("**/*/").empty?
-  options[:type] = "page"
-else
-  options[:type] = "assignment"
+if !options[:type]
+  if Dir.glob("**/*/").empty?
+    options[:type] = "page"
+  else
+    options[:type] = "assignment"
+  end
 end
 
 if !options[:branch]
@@ -89,9 +107,25 @@ if !options[:name]
 end
 
 if options[:create]
-  GithubToCanvas.new(mode: "create", course: options[:course], filepath: Dir.pwd, branch: options[:branch], name: options[:name], type: options[:type], dry: !!options[:dry])
+  GithubToCanvas.new(mode: "create", 
+                    course: options[:course], 
+                    filepath: Dir.pwd, 
+                    branch: options[:branch], 
+                    name: options[:name], 
+                    type: options[:type], 
+                    dry: !!options[:dry], 
+                    fis_links: !!options[:fis], 
+                    remove_header: !!options[:remove_header])
 end
 
 if options[:align]
-  GithubToCanvas.new(mode: "align", course: nil, filepath: Dir.pwd, branch: options[:branch], name: options[:name], type: options[:type], dry: !!options[:dry])
+  GithubToCanvas.new(mode: "align", 
+                    course: nil, 
+                    filepath: Dir.pwd, 
+                    branch: options[:branch], 
+                    name: options[:name], 
+                    type: options[:type], 
+                    dry: !!options[:dry], 
+                    fis_links: !!options[:fis], 
+                    remove_header: !!options[:remove_header])
 end
