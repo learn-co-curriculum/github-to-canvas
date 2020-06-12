@@ -28,3 +28,7 @@
   :course_id: 154
   :canvas_url: https://learning.flatironschool.com/courses/154/assignments/6775
   :type: assignment
+- :id: 876
+  :course_id: 154
+  :canvas_url: https://learning.flatironschool.com/courses/154/discussion_topics/876
+  :type: discussion
