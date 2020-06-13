@@ -1,6 +1,5 @@
 require 'json'
 require 'rest-client'
-
 class CanvasInterface
 
   def self.submit_to_canvas(course_id, type, name, readme, dry_run = false)
@@ -33,7 +32,11 @@ class CanvasInterface
   end
 
   def self.update_existing_lesson(course_id, id, type, name, new_readme, dry_run)
-    url = "#{ENV['CANVAS_API_PATH']}/courses/#{course_id}/#{type}s/#{id}"
+    if type == "discussion"
+      url = "#{ENV['CANVAS_API_PATH']}/courses/#{course_id}/#{type}_topics/#{id}"
+    else
+      url = "#{ENV['CANVAS_API_PATH']}/courses/#{course_id}/#{type}s/#{id}"
+    end
     payload = self.build_payload(type, name, new_readme)
     begin
       RestClient.put(url, payload, headers={
