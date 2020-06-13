@@ -1,17 +1,21 @@
 require 'redcarpet'
-require 'byebug'
 class RepositoryConverter
 
-  def self.convert(filepath, readme, branch, remove_header)
-    if remove_header
-      self.remove_header(readme)
+  def self.convert(filepath, readme, branch, remove_header_and_footer)
+    if remove_header_and_footer
+      readme = self.remove_header(readme)
+      readme = self.remove_footer(readme)
     end
     self.fix_local_images(filepath, readme, branch)
     self.convert_to_html(filepath, readme)
   end
 
   def self.remove_header(readme)
-    readme.gsub!(/^#.+?\n\n/,"")
+    readme.gsub(/^# .+?\n\n/,"")
+  end
+
+  def self.remove_footer(readme)
+    readme.gsub(/<p (.+?)<\/p>/,"")
   end
 
   def self.fix_local_images(filepath, readme, branch)
@@ -69,12 +73,14 @@ class RepositoryConverter
 
   def self.add_fis_links(filepath, readme)
     repo = self.get_repo_url(filepath)
-    github_repo_link = "<a style='text-decoration: none;' href='#{repo}' target='_blank' rel='noopener'><img style='width: 40px; height: 40px; margin: 2px;' title='Open GitHub Repo' src='https://curriculum-content.s3.amazonaws.com/git-logo-gray.png' alt='Link to GitHub Repo' /></a>"
-    github_issue_link = "<a style='text-decoration: none;' href='#{repo}/issues/new' target='_blank' rel='noopener'><img style='width: 40px; height: 40px; margin: 2px;' title='Create New Issue' src='https://curriculum-content.s3.amazonaws.com/flag-icon-gray.png' alt='Link to GitHub Repo Issue Form' /></a>"
-
-    html = "<p style='margin: 0; padding: 0; position: absolute; right: 5px; top: 5px; margin: 0; padding: 0;'>#{github_repo_link}#{github_issue_link}</p>"
-    
-    readme + html
+    github_repo_link = "<a class='fis-git-link' href='#{repo}' target='_blank' rel='noopener'><img id='repo-img' title='Open GitHub Repo' alt='GitHub Repo' /></a>"
+    github_issue_link = "<a class='fis-git-link' href='#{repo}/issues/new' target='_blank' rel='noopener'><img id='issue-img' title='Create New Issue' alt='Create New Issue' /></a>"
+    thumbs_up_link = "<a id='thumbs-up' data-repository='#{repo.split('/')[-1]}'><img title='Thumbs up!' alt='thumbs up' /></a>"
+    thumbs_down_link = "<a id='thumbs-down' data-repository='#{repo.split('/')[-1]}'><img title='Thumbs down!' alt='thumbs down' /></a>"
+    feedback_link = "<h5>Have specific feedback? <a href='#{repo}/issues/new'>Tell us here!</a></h5>"
+    header = "<header class='fis-header' style='visibility: hidden;'>#{github_repo_link}#{github_issue_link}</header>"
+    footer = "<footer class='fis-footer' style='visibility: hidden;'><div class='fis-feedback'><h5>How do you feel about this lesson?</h5>#{thumbs_up_link}#{thumbs_down_link}</div>#{feedback_link}</footer>"
+    header + readme + footer
   end
 
 end
