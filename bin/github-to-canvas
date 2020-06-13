@@ -19,7 +19,7 @@ OptionParser.new do |opts|
     github-to-canvas --create COURSE [--branch BRANCH] [--name NAME] [--type TYPE]
     github-to-canvas --create COURSE [--dry-run]
     github-to-canvas --create COURSE [--fis-links]
-    github-to-canvas --create COURSE [--fis-links] [--remove-header]
+    github-to-canvas --create COURSE [--fis-links] [--remove-header-and-footer]
     github-to-canvas --align
     github-to-canvas --align [--branch BRANCH]
     github-to-canvas --align [--branch BRANCH] [--fis-links]
@@ -37,7 +37,7 @@ OptionParser.new do |opts|
     github-to-canvas --create 154 --name "Fetch Lab" --branch solution -> Creates a lesson in course 154 with the provided name, uses the repository's solution branch and derives the type from the local repo
     github-to-canvas --align                                           -> Patches existing lessons in Canvas based on the .canvas file  
     github-to-canvas --align --fis-links                               -> Patches existing lessons in Canvas based on the .canvas file, adds addition Flatiron School specific HTML
-    github-to-canvas --align --remove-header                           -> Patches existing lessons in Canvas based on the .canvas file, removes top lesson header before converting to HTML
+    github-to-canvas --align --remove-header-and-footer                           -> Patches existing lessons in Canvas based on the .canvas file, removes top lesson header before converting to HTML
 
   EOBANNER
 
@@ -79,9 +79,9 @@ OptionParser.new do |opts|
           "Adds additional Flatiron School HTML after markdown conversion") do |f|
             options[:fis] = true
           end
-  opts.on("-r", "--remove-header",
-          "Removes top lesson header before converting to HTML") do |r|
-            options[:remove_header] = true
+  opts.on("-r", "--remove-header-and-footer",
+          "Removes top lesson header and any Learn.co specific footer links before converting to HTML") do |r|
+            options[:remove_header_and_footer] = true
           end
   
 end.parse!
@@ -115,7 +115,7 @@ if options[:create]
                     type: options[:type], 
                     dry: !!options[:dry], 
                     fis_links: !!options[:fis], 
-                    remove_header: !!options[:remove_header])
+                    remove_header_and_footer: !!options[:remove_header_and_footer])
 end
 
 if options[:align]
@@ -127,5 +127,5 @@ if options[:align]
                     type: options[:type], 
                     dry: !!options[:dry], 
                     fis_links: !!options[:fis], 
-                    remove_header: !!options[:remove_header])
+                    remove_header_and_footer: !!options[:remove_header_and_footer])
 end

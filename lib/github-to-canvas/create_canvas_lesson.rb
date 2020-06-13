@@ -1,18 +1,18 @@
 class CreateCanvasLesson
 
-  def initialize(course, filepath, branch, name, type, dry_run, fis_links, remove_header)
+  def initialize(course, filepath, branch, name, type, dry_run, fis_links, remove_header_and_footer)
     name = name.split(/[- _]/).map(&:capitalize).join(' ')
     original_readme = File.read("#{filepath}/README.md")
     if !original_readme
       puts 'README.md not found in current directory. Exiting...'
       abort
     end
-    create_canvas_lesson(original_readme, course, filepath, branch, name, type, dry_run, fis_links, remove_header)
+    create_canvas_lesson(original_readme, course, filepath, branch, name, type, dry_run, fis_links, remove_header_and_footer)
   end
 
-  def create_canvas_lesson(readme, course, filepath, branch, name, type, dry_run, fis_links, remove_header)
+  def create_canvas_lesson(readme, course, filepath, branch, name, type, dry_run, fis_links, remove_header_and_footer)
     GithubInterface.get_updated_repo(filepath, branch)
-    new_readme = RepositoryConverter.convert(filepath, readme, branch, remove_header)
+    new_readme = RepositoryConverter.convert(filepath, readme, branch, remove_header_and_footer)
     if fis_links
       new_readme = RepositoryConverter.add_fis_links(filepath, new_readme)
     end
