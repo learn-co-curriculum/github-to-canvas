@@ -1,4 +1,3 @@
-require 'byebug'
 class GithubInterface
 
   def self.cd_into_and(filepath, command)
