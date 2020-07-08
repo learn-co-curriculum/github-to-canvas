@@ -1,8 +1,6 @@
 #!/usr/bin/env ruby
-
 require 'optparse'
 require 'github-to-canvas'
-
 options = {}
 OptionParser.new do |opts|
   opts.banner = <<-EOBANNER
@@ -13,16 +11,18 @@ OptionParser.new do |opts|
     https://github.com/learn-co-curriculum/github-to-canvas
 
     Commands:
-    github-to-canvas --create COURSE
-    github-to-canvas --create COURSE [--branch BRANCH]
-    github-to-canvas --create COURSE [--branch BRANCH] [--name NAME]
-    github-to-canvas --create COURSE [--branch BRANCH] [--name NAME] [--type TYPE]
-    github-to-canvas --create COURSE [--dry-run]
-    github-to-canvas --create COURSE [--fis-links]
-    github-to-canvas --create COURSE [--fis-links] [--remove-header-and-footer]
+    github-to-canvas --create-lesson COURSE
+    github-to-canvas --create-lesson COURSE [--save]
+    github-to-canvas --create-lesson COURSE [--branch BRANCH]
+    github-to-canvas --create-lesson COURSE [--branch BRANCH] [--name NAME]
+    github-to-canvas --create-lesson COURSE [--branch BRANCH] [--name NAME] [--type TYPE]
+    github-to-canvas --create-lesson COURSE [--fis-links]
+    github-to-canvas --create-lesson COURSE [--fis-links] [--remove-header-and-footer]
     github-to-canvas --align
     github-to-canvas --align [--branch BRANCH]
+    github-to-canvas --align [--only-content]
     github-to-canvas --align [--branch BRANCH] [--fis-links]
+    github-to-canvas --info COURSE
     github-to-canvas --version
 
     
@@ -31,19 +31,20 @@ OptionParser.new do |opts|
 
     Example usage:
 
-    github-to-canvas --create 154                                      -> Creates a lesson in course 154, derives the name and type from the local repo
-    github-to-canvas --create 154 --name "Fetch Lab"                   -> Creates a lesson in course 154 with the provided name, derives the type from the local repo
-    github-to-canvas --create 154 --name "Fetch Lab" --type assignment -> Creates an assignment in course 154 with the provided name
-    github-to-canvas --create 154 --name "Fetch Lab" --branch solution -> Creates a lesson in course 154 with the provided name, uses the repository's solution branch and derives the type from the local repo
-    github-to-canvas --align                                           -> Patches existing lessons in Canvas based on the .canvas file  
-    github-to-canvas --align --fis-links                               -> Patches existing lessons in Canvas based on the .canvas file, adds addition Flatiron School specific HTML
-    github-to-canvas --align --remove-header-and-footer                           -> Patches existing lessons in Canvas based on the .canvas file, removes top lesson header before converting to HTML
+    github-to-canvas --create-lesson 154                                      -> Creates a lesson in course 154, derives the name and type from the local repo
+    github-to-canvas --create-lesson 154 --name "Fetch Lab"                   -> Creates a lesson in course 154 with the provided name, derives the type from the local repo
+    github-to-canvas --create-lesson 154 --name "Fetch Lab" --type assignment -> Creates an assignment in course 154 with the provided name
+    github-to-canvas --create-lesson 154 --name "Fetch Lab" --branch solution -> Creates a lesson in course 154 with the provided name, uses the repository's solution branch and derives the type from the local repo
+    github-to-canvas --align                                                  -> Patches existing lessons in Canvas based on the .canvas file  
+    github-to-canvas --align --fis-links                                      -> Patches existing lessons in Canvas based on the .canvas file, adds addition Flatiron School specific HTML
+    github-to-canvas --align --remove-header-and-footer                       -> Patches existing lessons in Canvas based on the .canvas file, removes top lesson header before converting to HTML
+    github-to-canvas --info COURSE                                            -> Displays a course's lesson and assignment names    
 
   EOBANNER
 
-  opts.on("-cCOURSE", "--create COURSE", 
+  opts.on("-cCOURSE", "--create-lesson COURSE", 
           "Creates a new canvas lesson, converting the local repository's README.md to HTML. Adds .canvas file to remote repository") do |course| 
-            options[:create] = true
+            options[:create_lesson] = true
             options[:course] = course
           end
   opts.on("-bBRANCH", "--branch BRANCH", 
@@ -63,6 +64,14 @@ OptionParser.new do |opts|
               options[:type] = "page"
             end
           end
+  opts.on("-fFILE", "--file FILE", 
+          "Looks for and uses a markdown file in the currentt folder as source for conversion. Default file is README.md. Skips writing .canvas to repository") do |file| 
+            options[:file_to_convert] = file
+          end
+  opts.on("-s", "--save-to-github",
+          "Creates a local .canvas file and attempts to commit and push it to the GitHub repository") do |s| 
+            options[:save_to_github] = true 
+          end
   opts.on("-a", "--align", 
           "Updates a canvas lesson based on the local repository's README.md") do |a|
             options[:align] = true 
@@ -71,11 +80,7 @@ OptionParser.new do |opts|
           "Displays current gem version") do |v|
             options[:version] = true
           end
-  opts.on("-d", "--dry-run",
-          "Runs through creation without pushing to Canvas or GitHub") do |d|
-            options[:dry] = true
-          end
-  opts.on("-f", "--fis-links",
+  opts.on("-l", "--fis-links",
           "Adds additional Flatiron School HTML after markdown conversion") do |f|
             options[:fis] = true
           end
@@ -83,11 +88,31 @@ OptionParser.new do |opts|
           "Removes top lesson header and any Learn.co specific footer links before converting to HTML") do |r|
             options[:remove_header_and_footer] = true
           end
+  opts.on("--course COURSE",
+          "For align functionality only - updates the HTML content of a lesson using the provided course ID. Use with --id.") do |course|
+            options[:course] = course
+          end
+  opts.on("--id ID",
+          "For align functionality only - updates the HTML content of a lesson using the provided assignment or page ID. Use with --course.") do |id|
+            options[:id] = id
+          end
+  opts.on("-o", "--only-content",
+          "For align functionality only - updates the HTML content of a lesson without changing the name") do |o|
+            options[:only_content] = true
+          end
+  opts.on("-q COURSE", "--query COURSE", 
+          "Displays a course's lessons and assignments") do |course|
+            options[:query] = course
+          end
   
 end.parse!
 
 if options[:version]
   GithubToCanvas.new(mode: 'version',  course: nil)
+end
+
+if options[:query]
+  GithubToCanvas.new(mode: 'query',  course: options[:query], id: options[:id])
 end
 
 if !options[:type]
@@ -103,29 +128,48 @@ if !options[:branch]
 end
 
 if !options[:name]
-  options[:name] = File.basename(Dir.getwd)
+  if options[:file_to_convert]
+    options[:name] = options[:file_to_convert]
+  else
+    markdown = File.read("#{Dir.pwd}/README.md")
+    if markdown.match?(/^# .+?\n\n/)
+      options[:name] = markdown.match(/^# .+?\n\n/)[0].strip.slice(2,markdown.length)
+    else
+      options[:name] = File.basename(Dir.getwd)
+    end    
+    options[:file_to_convert] = "README.md"
+  end
 end
 
-if options[:create]
+if !options[:file_to_convert]
+  options[:file_to_convert] = "README.md"
+end
+
+if options[:create_lesson]
   GithubToCanvas.new(mode: "create", 
                     course: options[:course], 
                     filepath: Dir.pwd, 
+                    file_to_convert: options[:file_to_convert],
                     branch: options[:branch], 
                     name: options[:name], 
                     type: options[:type], 
-                    dry: !!options[:dry], 
+                    save_to_github: !!options[:save_to_github], 
                     fis_links: !!options[:fis], 
-                    remove_header_and_footer: !!options[:remove_header_and_footer])
+                    remove_header_and_footer: !!options[:remove_header_and_footer],
+                    only_update_content: !!options[:only_content])
 end
 
 if options[:align]
   GithubToCanvas.new(mode: "align", 
-                    course: nil, 
-                    filepath: Dir.pwd, 
-                    branch: options[:branch], 
-                    name: options[:name], 
-                    type: options[:type], 
-                    dry: !!options[:dry], 
+                    course: options[:course], 
+                    id: options[:id],
+                    filepath: Dir.pwd,
+                    file_to_convert: options[:file_to_convert], 
+                    branch: options[:branch],
+                    name: options[:name],
+                    type: options[:type],
+                    save_to_github: !!options[:save_to_github], 
                     fis_links: !!options[:fis], 
-                    remove_header_and_footer: !!options[:remove_header_and_footer])
+                    remove_header_and_footer: !!options[:remove_header_and_footer],
+                    only_update_content: !!options[:only_content])
 end
