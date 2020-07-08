@@ -1,16 +1,15 @@
 require 'yaml'
-
 class CanvasDotfile
 
   def self.update_or_create(filepath, response, course, type)
     if File.file?(".canvas")
-      if type == "assignment"
+      if type == "assignment" || type == "discussion"
         canvas_data = self.update_assignment_data(response, course, type)
       else
         canvas_data = self.update_page_data(response, course, type)
       end
     else
-      if type == "assignment"
+      if type == "assignment" || type == "discussion"
         canvas_data = self.create_assignment_data(response, course, type)
       else
         canvas_data = self.create_page_data(response, course, type)
