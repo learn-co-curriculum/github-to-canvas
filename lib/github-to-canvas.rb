@@ -10,28 +10,34 @@ require_relative './github-to-canvas/version'
 class GithubToCanvas
 
   def initialize(mode:, 
-                course:, 
+                course:nil, 
+                id:nil,
                 filepath:Dir.pwd, 
-                branch:'master', 
+                file_to_convert:'README.md',
+                branch:'master',
                 name:File.basename(Dir.getwd), 
                 type:"page", 
-                dry:false, 
+                save_to_github:false, 
                 fis_links:false,
-                remove_header_and_footer:false)
+                remove_header_and_footer:false,
+                only_update_content: false)
 
     if mode == 'version'
       puts VERSION
-      return
+    end
+
+    if mode == 'query'
+      CanvasInterface.get_course_info(course, id)
     end
 
     if mode == 'create'
       puts "github-to-canvas will now create a Canvas lesson based on the current repo"
-      CreateCanvasLesson.new(course, filepath, branch, name, type, dry, fis_links, remove_header_and_footer)
+      CreateCanvasLesson.new(course, filepath, file_to_convert, branch, name, type, save_to_github, fis_links, remove_header_and_footer)
     end
 
     if mode == 'align'
       puts "github-to-canvas will now align any existing Canvas lessons based on the current repo. NOTE: .canvas file must be present"
-      UpdateCanvasLesson.new(filepath, branch, name, type, dry, fis_links, remove_header_and_footer)
+      UpdateCanvasLesson.new(course, filepath, file_to_convert, branch, name, type, save_to_github, fis_links, remove_header_and_footer, only_update_content, id)
     end
   end
 
