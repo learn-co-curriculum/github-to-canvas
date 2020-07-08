@@ -75,8 +75,8 @@ class RepositoryConverter
     repo = self.get_repo_url(filepath)
     github_repo_link = "<a class='fis-git-link' href='#{repo}' target='_blank' rel='noopener'><img id='repo-img' title='Open GitHub Repo' alt='GitHub Repo' /></a>"
     github_issue_link = "<a class='fis-git-link' href='#{repo}/issues/new' target='_blank' rel='noopener'><img id='issue-img' title='Create New Issue' alt='Create New Issue' /></a>"
-    thumbs_up_link = "<a id='thumbs-up' data-repository='#{repo.split('/')[-1]}'><img title='Thumbs up!' alt='thumbs up' /></a>"
-    thumbs_down_link = "<a id='thumbs-down' data-repository='#{repo.split('/')[-1]}'><img title='Thumbs down!' alt='thumbs down' /></a>"
+    thumbs_up_link = "<img id='thumbs-up' data-repository='#{repo.split('/')[-1]}' title='Thumbs up!' alt='thumbs up' />"
+    thumbs_down_link = "<img id='thumbs-down' data-repository='#{repo.split('/')[-1]}' title='Thumbs down!' alt='thumbs down' />"
     feedback_link = "<h5>Have specific feedback? <a href='#{repo}/issues/new'>Tell us here!</a></h5>"
     header = "<header class='fis-header' style='visibility: hidden;'>#{github_repo_link}#{github_issue_link}</header>"
     footer = "<footer class='fis-footer' style='visibility: hidden;'><div class='fis-feedback'><h5>How do you feel about this lesson?</h5>#{thumbs_up_link}#{thumbs_down_link}</div>#{feedback_link}</footer>"
