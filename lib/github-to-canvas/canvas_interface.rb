@@ -58,7 +58,8 @@ class CanvasInterface
             index = nil
           end 
         end
-
+        puts ""
+        puts ""
         puts "Info for Course #{course} from #{ENV['CANVAS_API_PATH']}"
         puts ""
         puts "## Pages ##"
@@ -114,7 +115,7 @@ class CanvasInterface
       })
     rescue
       puts "Something went wrong while pushing lesson #{id} to course #{course_id}"
-      # abort
+      nil
     end
   end
 
