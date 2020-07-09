@@ -54,9 +54,9 @@ class RepositoryConverter
   end
 
   def self.adjust_local_html_images(readme, raw_remote_url)
-    readme.gsub!(/src=\"[\s\S]*?"/) { |image_source|
+    readme.gsub!(/src=(\'|\")[\s\S]*?(\'|\")/) { |image_source|
       if !image_source.match?('amazonaws.com') && !image_source.match?('https://') && !image_source.match?('http://') && !image_source.match?('youtube')
-        image_source.gsub!(/\"/, "")
+        image_source.gsub!(/(\'|\")/, "")
         image_source.gsub!(/src=/, '')
         image_source.strip!
         'src="' + raw_remote_url + '/master/' + image_source + '"'
