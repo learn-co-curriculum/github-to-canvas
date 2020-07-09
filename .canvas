@@ -12,3 +12,7 @@
   :course_id: 154
   :canvas_url: https://learning.flatironschool.com/courses/154/pages/example-dot-md
   :type: page
+- :id: 10882
+  :course_id: 154
+  :canvas_url: https://learning.flatironschool.com/courses/154/assignments/10882
+  :type: assignment
