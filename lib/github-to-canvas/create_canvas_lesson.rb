@@ -1,7 +1,7 @@
 class CreateCanvasLesson
 
   def initialize(course, filepath, file_to_convert, branch, name, type, save_to_github, fis_links, remove_header_and_footer)
-    name = name.split(/[- _]/).map(&:capitalize).join(' ')
+    # name = name.split(/[- _]/).map(&:capitalize).join(' ')
     begin
       markdown = File.read("#{filepath}/#{file_to_convert}")
     rescue
