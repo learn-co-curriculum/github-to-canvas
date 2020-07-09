@@ -17,17 +17,27 @@ to go directly to the new lesson.
 
 Here are some image examples:
 
-### Inline Markdown:
+### Inline Markdown
 
 ![example in-line image](https://curriculum-content.s3.amazonaws.com/fewpjs/fewpjs-fetch-lab/Image_25_AsynchronousJavaScript.png)
 
 ![Tower of Babel](http://www.ancient-origins.net/sites/default/files/field/image/tower-of-babel-2.jpg)
 
-### HTML:
+### HTML
 
+#### Embeded in other HTML
 <p align="center">
   <img src="https://curriculum-content.s3.amazonaws.com/fewpjs/fewpjs-fetch-lab/Image_25_AsynchronousJavaScript.png" width="500">
 </p>
 
+#### Embedded in Markdown Table
+
 | <img src="images/mongo-db-logo.png" height=60% width=60%> | <img src="images/couchbase-logo.png"> |
 |---------------------|---------------------|
+
+#### Single/Double Quotes, With or Without Attributes
+
+<img src="images/couchbase-logo.png">
+<img src="images/couchbase-logo.png" width=50%>
+<img src='images/couchbase-logo.png'>
+<img src='images/couchbase-logo.png' width=50%>
