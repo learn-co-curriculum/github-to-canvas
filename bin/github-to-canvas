@@ -129,11 +129,20 @@ end
 
 if !options[:name]
   if options[:file_to_convert]
-    options[:name] = options[:file_to_convert]
+    markdown = File.read("#{Dir.pwd}/#{options[:file_to_convert]}")
+    if markdown.match?(/^# .+?\n\n/)
+      options[:name] = markdown.match(/^# .+?\n\n/)[0].strip.gsub("# ","").gsub("#","")
+    elsif markdown.match?(/^# .+?\n/)
+      options[:name] = markdown.match(/^# .+?\n/)[0].strip.gsub("# ","").gsub("#","")
+    else
+      options[:name] = options[:file_to_convert]
+    end
   else
     markdown = File.read("#{Dir.pwd}/README.md")
     if markdown.match?(/^# .+?\n\n/)
-      options[:name] = markdown.match(/^# .+?\n\n/)[0].strip.slice(2,markdown.length)
+      options[:name] = markdown.match(/^# .+?\n\n/)[0].strip.gsub("# ","").gsub("#","")
+    elsif markdown.match?(/^# .+?\n/)
+      options[:name] = markdown.match(/^# .+?\n/)[0].strip.gsub("# ","").gsub("#","")
     else
       options[:name] = File.basename(Dir.getwd)
     end    
