@@ -41,27 +41,27 @@ class RepositoryConverter
   end
 
   def self.adjust_local_markdown_images(readme, raw_remote_url, branch)
-    readme.gsub!(/\!\[.+\]\(.+\)/) {|image|
-      if !image.match('amazonaws.com') && !image.match('https://') && !image.match('youtube')
-        image.gsub!(/\(.+\)/) { |path|
+    readme.gsub!(/\!\[.+\]\(.+\)/) {|image_markdown|
+      if !image_markdown.match?('amazonaws.com') && !image_markdown.match?('https://') && !image_markdown.match?('http://') && !image_markdown.match?('youtube')
+        image_markdown.gsub!(/\(.+\)/) { |path|
           path.delete_prefix!("(")
           path.delete_suffix!(")")
           "(" + raw_remote_url + "/#{branch}/" + path + ")"
         }
       end
-      image
+      image_markdown
     }
   end
 
   def self.adjust_local_html_images(readme, raw_remote_url)
-    readme.gsub!(/src=\"[\s\S]*?" /) { |img|
-      if !img.match('amazonaws.com') && !img.match('https://') && !img.match('youtube')
-        img.gsub!(/\"/, "")
-        img.gsub!(/src=/, '')
-        img.strip!
-        'src="' + raw_remote_url + '/master/' + img + '"'
+    readme.gsub!(/src=\"[\s\S]*?"/) { |image_source|
+      if !image_source.match?('amazonaws.com') && !image_source.match?('https://') && !image_source.match?('http://') && !image_source.match?('youtube')
+        image_source.gsub!(/\"/, "")
+        image_source.gsub!(/src=/, '')
+        image_source.strip!
+        'src="' + raw_remote_url + '/master/' + image_source + '"'
       else
-        img
+        image_source
       end
     }
   end
