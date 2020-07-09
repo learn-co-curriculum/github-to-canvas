@@ -8,3 +8,7 @@
   :course_id: 154
   :canvas_url: https://learning.flatironschool.com/courses/154/pages/github-to-canvas-gem
   :type: page
+- :id: 11746
+  :course_id: 154
+  :canvas_url: https://learning.flatironschool.com/courses/154/pages/example-dot-md
+  :type: page
