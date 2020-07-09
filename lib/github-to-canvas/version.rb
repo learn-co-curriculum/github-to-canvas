@@ -1,3 +1,3 @@
 class GithubToCanvas
-  VERSION = "0.0.44"
+  VERSION = "0.0.46"
 end
