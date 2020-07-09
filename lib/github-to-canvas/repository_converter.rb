@@ -11,7 +11,8 @@ class RepositoryConverter
   end
 
   def self.remove_header(readme)
-    readme.gsub(/^# .+?\n\n/,"")
+    readme.gsub!(/^# .+?\n\n/,"")
+    readme.gsub(/^# .+?\n/,"")
   end
 
   def self.remove_footer(readme)
