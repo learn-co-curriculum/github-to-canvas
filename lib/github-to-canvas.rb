@@ -6,7 +6,6 @@ require_relative './github-to-canvas/canvas_interface'
 require_relative './github-to-canvas/canvas_dotfile'
 require_relative './github-to-canvas/version'
 
-
 class GithubToCanvas
 
   def initialize(mode:, 
@@ -28,6 +27,18 @@ class GithubToCanvas
 
     if mode == 'query'
       CanvasInterface.get_course_info(course, id)
+    end
+
+    if mode == 'remote'
+      lesson_data = CanvasInterface.get_lesson_info(course, id)
+      if !lesson_data[1]
+        puts "No lesson with id #{id} was found in course #{course}."
+      else
+        pp lesson_data[0]
+        puts "\nLesson Type: #{lesson_data[1]}"
+      end
+      
+      
     end
 
     if mode == 'create'
