@@ -104,6 +104,10 @@ OptionParser.new do |opts|
           "Displays a course's lessons and assignments") do |course|
             options[:query] = course
           end
+  opts.on("--remote",
+          "Retrieves a Canvas lesson. Requires --course and --id") do |remote|
+            options[:remote] = true
+          end
   
 end.parse!
 
@@ -113,6 +117,14 @@ end
 
 if options[:query]
   GithubToCanvas.new(mode: 'query',  course: options[:query], id: options[:id])
+end
+
+if options[:remote]
+  if !options[:course] || !options[:id]
+    puts "Both --course and --id required when using --remote"
+    abort
+  end
+  GithubToCanvas.new(mode: 'remote', course: options[:course], id: options[:id])
 end
 
 if !options[:type]
