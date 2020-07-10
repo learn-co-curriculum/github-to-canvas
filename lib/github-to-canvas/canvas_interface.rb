@@ -3,41 +3,41 @@ require 'rest-client'
 class CanvasInterface
 
   def self.get_lesson_info(course, id)
-    page_url = "#{ENV['CANVAS_API_PATH']}/courses/#{course}/pages/#{id}"
-    assignment_url = "#{ENV['CANVAS_API_PATH']}/courses/#{course}/assignments/#{id}"
+
+    lesson_types = ["quizzes", "assignments", "pages", "discussion_topics"]
+    lesson_type_urls = []
+    lesson_types.each do |type|
+      lesson_type_urls << "#{ENV['CANVAS_API_PATH']}/courses/#{course}/#{type}/#{id}"
+    end
+
     type = nil
     info = ""
+    lesson_type_urls.each do |url|
       begin
-        page_response = RestClient.get(page_url, headers={
+        response = RestClient.get(url, headers={
           "Authorization" => "Bearer #{ENV['CANVAS_API_KEY']}"
         })
-        if ([200, 201].include? page_response.code)
-          info = JSON.parse(page_response.body)
-          puts "A Canvas page with the ID #{id} was found in course #{course}:"
-          type = "page"
+        if [200, 201].include? response.code
+          info = JSON.parse(response.body)
+          type = lesson_types.find {|type| url.match?("#{type}")}
+          type.delete_suffix!('zes')
+          type.delete_suffix!('s')
+          puts "\nA Canvas #{type} was found in course #{course} with the id #{id}"
+          break
         end
       rescue
       end
-
-      begin
-        assignment_response = RestClient.get(assignment_url, headers={
-          "Authorization" => "Bearer #{ENV['CANVAS_API_KEY']}"
-        })
-        if ([200, 201].include? assignment_response.code)
-          info = JSON.parse(assignment_response.body)
-          puts "A Canvas assignment with the ID #{id} was found in course #{course}:"
-          type = "assignment"
-        end
-      rescue
-      end
+    end
+    
+    
     [info, type]
   end
 
   def self.get_course_info(course, id)
     if id
-      info = self.get_lesson_info(course, id)
-      pp info[1]
-      pp info[0]
+      lesson_data = self.get_lesson_info(course, id)
+      pp lesson_data[0]
+      pp "\nLesson Type: #{lesson_data[1]}"
       return
     end
 
