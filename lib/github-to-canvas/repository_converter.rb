@@ -88,12 +88,12 @@ class RepositoryConverter
     github_issue_link = "<a class='fis-git-link' href='#{repo_path}/issues/new' target='_blank' rel='noopener'><img id='issue-img' title='Create New Issue' alt='Create New Issue' /></a>"
     
     # add link to fork (forking handled by separate Flatiron server, generation of link handled via custom Canvas JS theme file)
-    if (forkable) {
+    if (forkable)
       github_fork_link = "<a class='fis-fork-link' id='fork-link' data-repo='#{repo_name}' href='#' target='_blank' rel='noopener'><img id='fork-img' title='Fork This Assignment' alt='Fork This Assignment' /></a>"
       "<header class='fis-header' style='visibility: hidden;'>#{github_fork_link}#{github_issue_link}</header>"
-    } else {
+    else
       "<header class='fis-header' style='visibility: hidden;'>#{github_issue_link}</header>"
-    }
+    end
   end
 
 end

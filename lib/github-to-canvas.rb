@@ -19,8 +19,8 @@ class GithubToCanvas
                 save_to_github:false, 
                 fis_links:false,
                 remove_header_and_footer:false,
-                only_update_content: false),
-                forkable: false
+                only_update_content: false,
+                forkable: false)
 
     if mode == 'version'
       puts VERSION

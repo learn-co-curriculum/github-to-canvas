@@ -183,8 +183,8 @@ if options[:create_lesson]
                     save_to_github: !!options[:save_to_github], 
                     fis_links: !!options[:fis], 
                     remove_header_and_footer: !!options[:remove_header_and_footer],
-                    only_update_content: !!options[:only_content]),
-                    forkable: !!options[:forkable]
+                    only_update_content: !!options[:only_content],
+                    forkable: !!options[:forkable])
 end
 
 if options[:align]
@@ -199,6 +199,6 @@ if options[:align]
                     save_to_github: !!options[:save_to_github], 
                     fis_links: !!options[:fis], 
                     remove_header_and_footer: !!options[:remove_header_and_footer],
-                    only_update_content: !!options[:only_content]),
-                    forkable: !!options[:forkable]
+                    only_update_content: !!options[:only_content],
+                    forkable: !!options[:forkable])
 end
