@@ -72,16 +72,26 @@ class RepositoryConverter
     redcarpet.render(readme)
   end
 
-  def self.add_fis_links(filepath, readme)
-    repo = self.get_repo_url(filepath)
-    github_repo_link = "<a class='fis-git-link' href='#{repo}' target='_blank' rel='noopener'><img id='repo-img' title='Open GitHub Repo' alt='GitHub Repo' /></a>"
-    github_issue_link = "<a class='fis-git-link' href='#{repo}/issues/new' target='_blank' rel='noopener'><img id='issue-img' title='Create New Issue' alt='Create New Issue' /></a>"
-    thumbs_up_link = "<img id='thumbs-up' data-repository='#{repo.split('/')[-1]}' title='Thumbs up!' alt='thumbs up' />"
-    thumbs_down_link = "<img id='thumbs-down' data-repository='#{repo.split('/')[-1]}' title='Thumbs down!' alt='thumbs down' />"
-    feedback_link = "<h5>Have specific feedback? <a href='#{repo}/issues/new'>Tell us here!</a></h5>"
-    header = "<header class='fis-header' style='visibility: hidden;'>#{github_repo_link}#{github_issue_link}</header>"
-    footer = "<footer class='fis-footer' style='visibility: hidden;'><div class='fis-feedback'><h5>How do you feel about this lesson?</h5>#{thumbs_up_link}#{thumbs_down_link}</div>#{feedback_link}</footer>"
-    header + readme + footer
+  def self.add_fis_links(filepath, readme, course, id, type, remote)
+    
+    repo_path = remote ? "none" : self.get_repo_url(filepath)
+    header = self.create_github_link_header(repo_path)
+    header + readme
+  end
+
+  def self.create_github_link_header(repo_path)
+    repo_name = repo_path.split('/')[-1]
+    
+    # add link to fork (forking handled by separate Flatiron server, generation of link handled via custom Canvas JS theme file)
+    github_fork_link = "<a class='fis-git-link' data-repo='#{repo_name}' href='#' target='_blank' rel='noopener'><img id='fork-img' title='Fork This Assignment' alt='Fork This Assignment' /></a>"
+
+    # add link to associated repository
+    # github_repo_link = "<a class='fis-git-link' href='#{repo_path}' target='_blank' rel='noopener'><img id='repo-img' title='Open GitHub Repo' alt='GitHub Repo' /></a>"
+    
+    # add link to new issue form
+    github_issue_link = "<a class='fis-git-link' href='#{repo_path}/issues/new' target='_blank' rel='noopener'><img id='issue-img' title='Create New Issue' alt='Create New Issue' /></a>"
+    
+    "<header class='fis-header' style='visibility: hidden;'>#{github_fork_link}#{github_issue_link}</header>"
   end
 
 end
