@@ -19,7 +19,8 @@ class GithubToCanvas
                 save_to_github:false, 
                 fis_links:false,
                 remove_header_and_footer:false,
-                only_update_content: false)
+                only_update_content: false),
+                forkable: false
 
     if mode == 'version'
       puts VERSION
@@ -43,12 +44,12 @@ class GithubToCanvas
 
     if mode == 'create'
       puts "github-to-canvas will now create a Canvas lesson based on the current repo"
-      CreateCanvasLesson.new(course, filepath, file_to_convert, branch, name, type, save_to_github, fis_links, remove_header_and_footer)
+      CreateCanvasLesson.new(course, filepath, file_to_convert, branch, name, type, save_to_github, fis_links, remove_header_and_footer, forkable)
     end
 
     if mode == 'align'
       puts "github-to-canvas will now align any existing Canvas lessons based on the current repo. NOTE: .canvas file must be present"
-      UpdateCanvasLesson.new(course, filepath, file_to_convert, branch, name, type, save_to_github, fis_links, remove_header_and_footer, only_update_content, id)
+      UpdateCanvasLesson.new(course, filepath, file_to_convert, branch, name, type, save_to_github, fis_links, remove_header_and_footer, only_update_content, id, forkable)
     end
   end
 

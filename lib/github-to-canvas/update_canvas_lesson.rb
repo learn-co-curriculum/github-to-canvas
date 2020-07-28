@@ -1,6 +1,6 @@
 class UpdateCanvasLesson
 
-  def initialize(course, filepath, file_to_convert, branch, name, type, save_to_github, fis_links, remove_header_and_footer, only_update_content, id)
+  def initialize(course, filepath, file_to_convert, branch, name, type, save_to_github, fis_links, remove_header_and_footer, only_update_content, id, forkable)
     # name = name.split(/[- _]/).map(&:capitalize).join(' ')
     begin
       markdown = File.read("#{filepath}/#{file_to_convert}")
@@ -8,10 +8,10 @@ class UpdateCanvasLesson
       puts "#{file_to_convert} not found in current directory. Exiting..."
       abort
     end
-    update_canvas_lesson(course, markdown, filepath, branch, name, type, save_to_github, fis_links, remove_header_and_footer, only_update_content, id)
+    update_canvas_lesson(course, markdown, filepath, branch, name, type, save_to_github, fis_links, remove_header_and_footer, only_update_content, id, forkable)
   end
 
-  def update_canvas_lesson(course, markdown, filepath, branch, name, type, save_to_github, fis_links, remove_header_and_footer, only_update_content, id)
+  def update_canvas_lesson(course, markdown, filepath, branch, name, type, save_to_github, fis_links, remove_header_and_footer, only_update_content, id, forkable)
     # Pulls any updates that exist on GitHub
     GithubInterface.get_updated_repo(filepath, branch)
     
@@ -21,7 +21,7 @@ class UpdateCanvasLesson
     
     # adds Flatiron School specific header and footer
     if fis_links
-      new_html = RepositoryConverter.add_fis_links(filepath, new_html) 
+      new_html = RepositoryConverter.add_fis_links(filepath, new_html, forkable) 
     end
 
     # Read the local .canvas file if --id <ID> is not used. Otherwise, use provided ID (--course <COURSE> also required)

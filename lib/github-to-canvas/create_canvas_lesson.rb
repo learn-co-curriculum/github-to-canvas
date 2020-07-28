@@ -1,6 +1,6 @@
 class CreateCanvasLesson
 
-  def initialize(course, filepath, file_to_convert, branch, name, type, save_to_github, fis_links, remove_header_and_footer)
+  def initialize(course, filepath, file_to_convert, branch, name, type, save_to_github, fis_links, remove_header_and_footer, forkable)
     # name = name.split(/[- _]/).map(&:capitalize).join(' ')
     begin
       markdown = File.read("#{filepath}/#{file_to_convert}")
@@ -8,14 +8,14 @@ class CreateCanvasLesson
       puts "#{file_to_convert} not found in current directory. Exiting..."
       abort
     end
-    create_canvas_lesson(markdown, course, filepath, branch, name, type, save_to_github, fis_links, remove_header_and_footer)
+    create_canvas_lesson(markdown, course, filepath, branch, name, type, save_to_github, fis_links, remove_header_and_footer, forkable)
   end
 
-  def create_canvas_lesson(markdown, course, filepath, branch, name, type, save_to_github, fis_links, remove_header_and_footer)
+  def create_canvas_lesson(markdown, course, filepath, branch, name, type, save_to_github, fis_links, remove_header_and_footer, forkable)
     GithubInterface.get_updated_repo(filepath, branch)
     new_html = RepositoryConverter.convert(filepath, markdown, branch, remove_header_and_footer)
     if fis_links
-      new_html = RepositoryConverter.add_fis_links(filepath, new_html)
+      new_html = RepositoryConverter.add_fis_links(filepath, new_html, forkable)
     end
     response = CanvasInterface.submit_to_canvas(course, type, name, new_html)
     

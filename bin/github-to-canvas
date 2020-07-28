@@ -36,7 +36,7 @@ OptionParser.new do |opts|
     github-to-canvas --create-lesson 154 --name "Fetch Lab" --type assignment -> Creates an assignment in course 154 with the provided name
     github-to-canvas --create-lesson 154 --name "Fetch Lab" --branch solution -> Creates a lesson in course 154 with the provided name, uses the repository's solution branch and derives the type from the local repo
     github-to-canvas --align                                                  -> Patches existing lessons in Canvas based on the .canvas file  
-    github-to-canvas --align --fis-links                                      -> Patches existing lessons in Canvas based on the .canvas file, adds addition Flatiron School specific HTML
+    github-to-canvas --align --fis-links                                      -> Patches existing lessons in Canvas based on the .canvas file, adds additional Flatiron School specific HTML and meta-data
     github-to-canvas --align --remove-header-and-footer                       -> Patches existing lessons in Canvas based on the .canvas file, removes top lesson header before converting to HTML
     github-to-canvas --info COURSE                                            -> Displays a course's lesson and assignment names    
 
@@ -84,6 +84,10 @@ OptionParser.new do |opts|
           "Adds additional Flatiron School HTML after markdown conversion") do |f|
             options[:fis] = true
           end
+  opts.on("--fork",
+          "Used with --fis-links, adds fork button to HTML header injected into Canvas lesson") do |remote|
+            options[:forkable] = true
+          end
   opts.on("-r", "--remove-header-and-footer",
           "Removes top lesson header and any Learn.co specific footer links before converting to HTML") do |r|
             options[:remove_header_and_footer] = true
@@ -108,6 +112,7 @@ OptionParser.new do |opts|
           "Retrieves a Canvas lesson. Requires --course and --id") do |remote|
             options[:remote] = true
           end
+  
   
 end.parse!
 
@@ -177,7 +182,8 @@ if options[:create_lesson]
                     save_to_github: !!options[:save_to_github], 
                     fis_links: !!options[:fis], 
                     remove_header_and_footer: !!options[:remove_header_and_footer],
-                    only_update_content: !!options[:only_content])
+                    only_update_content: !!options[:only_content]),
+                    forkable: !!options[:forkable]
 end
 
 if options[:align]
@@ -192,5 +198,6 @@ if options[:align]
                     save_to_github: !!options[:save_to_github], 
                     fis_links: !!options[:fis], 
                     remove_header_and_footer: !!options[:remove_header_and_footer],
-                    only_update_content: !!options[:only_content])
+                    only_update_content: !!options[:only_content]),
+                    forkable: !!options[:forkable]
 end
