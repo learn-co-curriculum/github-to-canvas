@@ -72,16 +72,15 @@ class RepositoryConverter
     redcarpet.render(readme)
   end
 
-  def self.add_fis_links(filepath, readme, course, id, type, remote)
-    
-    repo_path = remote ? "none" : self.get_repo_url(filepath)
+  def self.add_fis_links(filepath, readme)
+    repo_path = self.get_repo_url(filepath)
     header = self.create_github_link_header(repo_path)
     header + readme
   end
 
   def self.create_github_link_header(repo_path)
     repo_name = repo_path.split('/')[-1]
-    
+
     # add link to fork (forking handled by separate Flatiron server, generation of link handled via custom Canvas JS theme file)
     github_fork_link = "<a class='fis-git-link' data-repo='#{repo_name}' href='#' target='_blank' rel='noopener'><img id='fork-img' title='Fork This Assignment' alt='Fork This Assignment' /></a>"
 
