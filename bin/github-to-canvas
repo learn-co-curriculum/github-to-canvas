@@ -84,7 +84,7 @@ OptionParser.new do |opts|
           "Adds additional Flatiron School HTML after markdown conversion") do |f|
             options[:fis] = true
           end
-  opts.on("--fork",
+  opts.on("--forkable",
           "Used with --fis-links, adds fork button to HTML header injected into Canvas lesson") do |remote|
             options[:forkable] = true
           end
@@ -135,6 +135,7 @@ end
 if !options[:type]
   if Dir.glob("**/*/").empty?
     options[:type] = "page"
+    options[:forkable] = false
   else
     options[:type] = "assignment"
   end
