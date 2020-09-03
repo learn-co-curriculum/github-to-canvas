@@ -1,5 +1,6 @@
 require 'json'
 require 'rest-client'
+require 'yaml'
 class CanvasInterface
 
   def self.get_lesson_info(course, id)
@@ -12,8 +13,10 @@ class CanvasInterface
 
     type = nil
     info = ""
+    byebug
     lesson_type_urls.each do |url|
       begin
+        
         response = RestClient.get(url, headers={
           "Authorization" => "Bearer #{ENV['CANVAS_API_KEY']}"
         })
@@ -41,39 +44,93 @@ class CanvasInterface
       return
     end
 
+    # /api/v1/courses/:course_id/modules
+    course_info = {
+      name: "",
+      modules: []
+    }
+
     begin
-        results = []
         index = 1
 
         while !!index
-          url = "#{ENV['CANVAS_API_PATH']}/courses/#{course}/pages?order=asc&sort=title&page=#{index}&per_page=10"
+          url = "#{ENV['CANVAS_API_PATH']}/courses/#{course}/modules?page=#{index}&per_page=20"
           index += 1
           response = RestClient.get(url, headers={
             "Authorization" => "Bearer #{ENV['CANVAS_API_KEY']}"
           })
-          pages = JSON.parse(response.body)
-          if ([200, 201].include? response.code) && (!pages.empty?)
-            results = results + pages
+          modules = JSON.parse(response.body)
+          
+          if ([200, 201].include? response.code) && (!modules.empty?)
+            course_info[:modules] = course_info[:modules] + modules
           else
             index = nil
           end 
         end
-        puts ""
-        puts ""
-        puts "Info for Course #{course} from #{ENV['CANVAS_API_PATH']}"
-        puts ""
-        puts "## Pages ##"
-        puts "Title : Page ID"
-        puts ""
+        
+        course_info[:modules] = course_info[:modules].map do |mod|
+          new_mod = {
+            id: mod['id'],
+            name: mod['name'],
+            lessons: []
+          }
+          index = 1
+          while !!index
+            url = "#{ENV['CANVAS_API_PATH']}/courses/#{course}/modules/#{mod['id']}/items?page=#{index}&per_page=20"
+            index += 1
+            response = RestClient.get(url, headers={
+              "Authorization" => "Bearer #{ENV['CANVAS_API_KEY']}"
+            })
+            lessons = JSON.parse(response.body)
+            lessons = lessons.map do |lesson|
+              lesson["repository"] = ""
+              lesson.slice("type","title","html_url","repository","url","indent")
+            end
+            if ([200, 201].include? response.code) && (!lessons.empty?)
+              new_mod[:lessons] = new_mod[:lessons] + lessons
+            else
+              index = nil
+            end 
+          end
+          new_mod
+        end
 
-        results.each {|result|
-          puts "#{result['title']} : #{result['page_id']}"
-        }
+        puts course_info.to_yaml
       
     rescue
       puts "Something went wrong while getting info about course #{course}"
       abort
     end
+  end
+
+  def self.map_course_info(file_to_convert)
+    course_info = YAML.load(File.read("#{Dir.pwd}/#{file_to_convert}"))
+    course_info[:modules] = course_info[:modules].map do |mod|
+      mod[:lessons] = mod[:lessons].map do |lesson|
+
+        url = lesson["url"]
+        response = RestClient.get(url, headers={
+            "Authorization" => "Bearer #{ENV['CANVAS_API_KEY']}"
+          })
+        begin
+          lesson_data = JSON.parse(response)
+          repo = lesson_data["body"] if lesson["type"] == "Page"
+          repo = lesson_data["message"] if lesson["type"] == "Discussion"
+          repo = lesson_data["description"] if lesson["type"] == "Assignment" || lesson["type"] == "Quiz"
+          repo = repo[/data-repo=\"(.*?)"/]
+        rescue
+          byebug
+        end
+        
+        if repo != nil && repo.include?("data-repo")
+          lesson["repository"] = "https://github.com/learn-co-curriculum/" + repo.slice(11..-2)
+        end
+        sleep(1)
+        lesson
+      end
+      mod
+    end
+    puts course_info.to_yaml
   end
 
   def self.submit_to_canvas(course_id, type, name, readme)
@@ -115,7 +172,7 @@ class CanvasInterface
       })
     rescue
       puts "Something went wrong while pushing lesson #{id} to course #{course_id}"
-      nil
+      ""
     end
   end
 
