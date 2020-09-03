@@ -74,26 +74,32 @@ class RepositoryConverter
 
   def self.add_fis_links(filepath, readme, forkable)
     repo_path = self.get_repo_url(filepath)
+    repo_name = repo_path.split('/')[-1]
+    repo_org = repo_path.split('/')[-2]
+
     header = self.create_github_link_header(repo_path, forkable)
-    header + readme
+    data_element = self.create_data_element(repo_org, repo_name)
+    data_element + header + readme
   end
 
   def self.create_github_link_header(repo_path, forkable)
-    repo_name = repo_path.split('/')[-1]
-
     # add link to associated repository
-    # github_repo_link = "<a class='fis-git-link' href='#{repo_path}' target='_blank' rel='noopener'><img id='repo-img' title='Open GitHub Repo' alt='GitHub Repo' /></a>"
+    github_repo_link = "<a class='fis-git-link' href='#{repo_path}' target='_blank' rel='noopener'><img id='repo-img' title='Open GitHub Repo' alt='GitHub Repo' /></a>"
     
     # add link to new issue form
     github_issue_link = "<a class='fis-git-link' href='#{repo_path}/issues/new' target='_blank' rel='noopener'><img id='issue-img' title='Create New Issue' alt='Create New Issue' /></a>"
     
     # add link to fork (forking handled by separate Flatiron server, generation of link handled via custom Canvas JS theme file)
     if (forkable)
-      github_fork_link = "<a class='fis-fork-link' id='fork-link' data-repo='#{repo_name}' href='#' target='_blank' rel='noopener'><img id='fork-img' title='Fork This Assignment' alt='Fork This Assignment' /></a>"
-      "<header class='fis-header' style='visibility: hidden;'>#{github_fork_link}#{github_issue_link}</header>"
+      github_fork_link = "<a class='fis-fork-link' id='fork-link' href='#' target='_blank' rel='noopener'><img id='fork-img' title='Fork This Assignment' alt='Fork This Assignment' /></a>"
+      "<header class='fis-header' style='visibility: hidden;'>#{github_fork_link}#{github_repo_link}#{github_issue_link}</header>"
     else
-      "<header class='fis-header' style='visibility: hidden;'>#{github_issue_link}</header>"
+      "<header class='fis-header' style='visibility: hidden;'>#{github_repo_link}#{github_issue_link}</header>"
     end
+  end
+
+  def self.create_data_element(repo_org, repo_name)
+    "<div id='git-data-element' data-org='#{repo_org}' data-repo='#{repo_name}'></div>"
   end
 
 end
