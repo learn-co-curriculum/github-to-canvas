@@ -30,6 +30,10 @@ class GithubToCanvas
       CanvasInterface.get_course_info(course, id)
     end
 
+    if mode == 'map'
+      CanvasInterface.map_course_info(file_to_convert)
+    end
+
     if mode == 'remote'
       lesson_data = CanvasInterface.get_lesson_info(course, id)
       if !lesson_data[1]

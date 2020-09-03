@@ -108,6 +108,10 @@ OptionParser.new do |opts|
           "Displays a course's lessons and assignments") do |course|
             options[:query] = course
           end
+  opts.on("--map", 
+          "REQUIRES -f or --file Associates canvas lessons with repositories. Use query to create required YAML file") do |map|
+            options[:map] = true
+          end
   opts.on("--remote",
           "Retrieves a Canvas lesson. Requires --course and --id") do |remote|
             options[:remote] = true
@@ -122,6 +126,15 @@ end
 
 if options[:query]
   GithubToCanvas.new(mode: 'query',  course: options[:query], id: options[:id])
+end
+
+if options[:map]
+  if options[:file_to_convert]
+    GithubToCanvas.new(mode: 'map',  file_to_convert: options[:file_to_convert])
+  else
+    puts "A YAML file is required for mapping. Use --query to create the necessary YAML"
+    abort
+  end
 end
 
 if options[:remote]
