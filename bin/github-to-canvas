@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 require 'optparse'
 require 'github-to-canvas'
+
 options = {}
 OptionParser.new do |opts|
   opts.banner = <<-EOBANNER
@@ -29,23 +30,40 @@ OptionParser.new do |opts|
     Run these commands from inside a local GitHub repository. This gem is built for Flatiron School's internal use.
     Some default behaviors assume this, like the default Canvas API path.
 
-    Example usage:
+    Create and Update Canvas Lessons From Inside a Local GitHub Repo Folder:
 
-    github-to-canvas --create-lesson 154                                      -> Creates a lesson in course 154, derives the name and type from the local repo
-    github-to-canvas --create-lesson 154 --name "Fetch Lab"                   -> Creates a lesson in course 154 with the provided name, derives the type from the local repo
-    github-to-canvas --create-lesson 154 --name "Fetch Lab" --type assignment -> Creates an assignment in course 154 with the provided name
-    github-to-canvas --create-lesson 154 --name "Fetch Lab" --branch solution -> Creates a lesson in course 154 with the provided name, uses the repository's solution branch and derives the type from the local repo
-    github-to-canvas --align                                                  -> Patches existing lessons in Canvas based on the .canvas file  
-    github-to-canvas --align --fis-links                                      -> Patches existing lessons in Canvas based on the .canvas file, adds additional Flatiron School specific HTML and meta-data
-    github-to-canvas --align --remove-header-and-footer                       -> Patches existing lessons in Canvas based on the .canvas file, removes top lesson header before converting to HTML
-    github-to-canvas --info COURSE                                            -> Displays a course's lesson and assignment names    
+    github-to-canvas --create-lesson 154                                                           -> Creates a lesson in course 154, derives the name and type from the local repo
+    github-to-canvas --create-lesson 154 --name "Fetch Lab"                                        -> Creates a lesson in course 154 with the provided name, derives the type from the local repo
+    github-to-canvas --create-lesson 154 --name "Fetch Lab" --type assignment                      -> Creates an assignment in course 154 with the provided name
+    github-to-canvas --create-lesson 154 --name "Fetch Lab" --branch solution                      -> Creates a lesson in course 154 with the provided name, uses the repository's solution branch and derives the type from the local repo
+    github-to-canvas --align                                                                       -> Patches existing lessons in Canvas based on the .canvas file  
+    github-to-canvas --align --fis-links                                                           -> Patches existing lessons in Canvas based on the .canvas file, adds additional Flatiron School specific HTML and meta-data
+    github-to-canvas --align --remove-header-and-footer                                            -> Patches existing lessons in Canvas based on the .canvas file, removes top lesson header before converting to HTML    
+
+    Get Info on a Canvas Course, Lesson or GitHub Repo:
+    
+    github-to-canvas --query COURSE                                                                -> Displays a course's modules and their lessons in course order as YAML
+    github-to-canvas --map YAML                                                                    -> Uses a YAML file created with --query to retrieve repositories that were associated with Canvas lessons using --fis-links. Returns an updated YAML.
+    github-to-canvas --read-from-canvas CANVAS_LESSON_URL                                          -> Retrieves a lesson's contents and information from Canvas
+    github-to-canvas --read-from-github GITHUB_URL                                                 -> Retrieves the provided GitHub markdown file, converted into HTML
+
+    Create and Update Canvas Lessons Using Remote GitHub Repositories:
+
+    github-to-canvas --create-from-github GITHUB_URL --course COURSE_ID --type TYPE                -> Creates a lesson in the provided course using the remote GitHub URL. Source must be from a public repo.
+    github-to-canvas --align-from-github GITHUB_URL --course COURSE_ID --id LESSON_ID --type TYPE  -> Updates a lesson in the provided course using the remote GitHub URL. Source must be from a public repo.
+
+    Create and Update Canvas Courses From YAML:
+
+    github-to-canvas --build-course YAML_FILE                                                     -> Uses the provided YAML file to create a course, add modules and populate them with lessons using remote GitHub repositories
+    github-to-canvas --add-to-course YAML_FILE --course                                           -> Uses a YAML file to a modules and lessons to an existing course.
+    github-to-canvas --update-course YAML_FILE                                                    -> Uses a YAML file to update lessons using their associated GitHub repositories (ignores module/course structure in YAML file)
 
   EOBANNER
 
   opts.on("-cCOURSE", "--create-lesson COURSE", 
           "Creates a new canvas lesson, converting the local repository's README.md to HTML. Adds .canvas file to remote repository") do |course| 
             options[:create_lesson] = true
-            options[:course] = course
+            options[:course_id] = course
           end
   opts.on("-bBRANCH", "--branch BRANCH", 
           "Sets the repository branch used for lesson creation") do |branch| 
@@ -93,8 +111,8 @@ OptionParser.new do |opts|
             options[:remove_header_and_footer] = true
           end
   opts.on("--course COURSE",
-          "For align functionality only - updates the HTML content of a lesson using the provided course ID. Use with --id.") do |course|
-            options[:course] = course
+          "For align functionality only - updates the HTML content of a lesson using the provided course ID. Use with --id.") do |course_id|
+            options[:course_id] = course_id
           end
   opts.on("--id ID",
           "For align functionality only - updates the HTML content of a lesson using the provided assignment or page ID. Use with --course.") do |id|
@@ -108,42 +126,133 @@ OptionParser.new do |opts|
           "Displays a course's lessons and assignments") do |course|
             options[:query] = course
           end
-  opts.on("--map", 
-          "REQUIRES -f or --file Associates canvas lessons with repositories. Use query to create required YAML file") do |map|
-            options[:map] = true
+  opts.on("--map YAML_FILE", 
+          "REQUIRES -f or --file Associates canvas lessons with repositories. Use query to create required YAML file") do |file|
+            options[:map] = file
           end
-  opts.on("--remote",
-          "Retrieves a Canvas lesson. Requires --course and --id") do |remote|
-            options[:remote] = true
+  opts.on("--read-from-canvas CANVAS_URL",
+          "Retrieves an existing Canvas lesson using the provided URL") do |url|
+            options[:read_from_canvas] = url
           end
-  
+  opts.on("--read-from-github GITHUB_URL",
+          "Converts an existing GitHub Readme to HTML using the provided URL. URL must be for a GitHub markdown file") do |url|
+            options[:read_from_github] = url
+          end
+  opts.on("--create-from-github GITHUB_URL",
+          "Creates a new Canvas lesson from a remote GitHub Readme. --course and --type options required") do |url|
+            options[:create_from_github] = url
+          end
+  opts.on("--create-quiz-from-github GITHUB_URL",
+          "Creates a new Canvas quiz from a remote GitHub YAML file. --course option required") do |url|
+            options[:quiz_from_github] = url
+          end
+  opts.on("--align-from-github GITHUB_URL",
+          "Aligns an existing Canvas lesson using a remote GitHub Readme. --course, --id, and --type options required") do |url|
+            options[:align_from_github] = url
+          end
+  opts.on("--build-course YAML_FILE", 
+          "Creates Canvas course using provided YAML file") do |file|
+            options[:build_course] = file
+          end
+  opts.on("--add-to-course YAML_FILE", 
+          "Creates Canvas course using provided YAML file") do |file|
+            options[:add_to_course] = file
+          end
+  opts.on("--update-course-lessons YAML_FILE", 
+          "Updates all lessons in a course using remote repos in provided YAML file") do |file|
+            options[:update_course_lessons] = file
+          end
   
 end.parse!
 
 if options[:version]
-  GithubToCanvas.new(mode: 'version',  course: nil)
+  GithubToCanvas.new(mode: 'version',  course_id: nil)
+  abort
+end
+
+if options[:read_from_canvas]
+  GithubToCanvas.new(mode: 'canvas_read', filepath: options[:read_from_canvas])
+  abort
+end
+
+if options[:read_from_github]
+  GithubToCanvas.new(mode: 'github_read', filepath: options[:read_from_github])
+  abort
+end
+
+if options[:create_from_github]
+  if options[:course_id] && options[:type]
+    GithubToCanvas.new(mode: 'github_create', 
+                      filepath: options[:create_from_github], 
+                      course_id: options[:course_id], 
+                      type: options[:type],
+                      remove_header_and_footer: !!options[:remove_header_and_footer],
+                      forkable: !!options[:forkable],
+                      fis_links: !!options[:fis])
+  else
+    puts 'Canvas course ID and lesson type required. Example: github-to-canvas --create-from-github URL --course ID --type TYPE'
+  end
+  abort
+end
+
+if options[:align_from_github]
+  if options[:course_id] && options[:type] && options[:id]
+    GithubToCanvas.new(mode: 'github_align', 
+                      filepath: options[:align_from_github], 
+                      course_id: options[:course_id], 
+                      type: options[:type], 
+                      id: options[:id],
+                      remove_header_and_footer: !!options[:remove_header_and_footer],
+                      forkable: !!options[:forkable],
+                      fis_links: !!options[:fis])
+  else
+    puts 'Canvas course ID, lesson ID, and type required. Example: github-to-canvas --create-from-github URL --course COURSE_ID --id LESSON_ID --type TYPE'
+  end
+  abort
 end
 
 if options[:query]
-  GithubToCanvas.new(mode: 'query',  course: options[:query], id: options[:id])
+  GithubToCanvas.new(mode: 'query',  course_id: options[:query], id: options[:id])
+  abort
 end
 
 if options[:map]
-  if options[:file_to_convert]
-    GithubToCanvas.new(mode: 'map',  file_to_convert: options[:file_to_convert])
-  else
-    puts "A YAML file is required for mapping. Use --query to create the necessary YAML"
-    abort
-  end
+  GithubToCanvas.new(mode: 'map', file_to_convert: options[:map])
+  abort
 end
 
-if options[:remote]
-  if !options[:course] || !options[:id]
-    puts "Both --course and --id required when using --remote"
-    abort
-  end
-  GithubToCanvas.new(mode: 'remote', course: options[:course], id: options[:id])
+if options[:build_course]
+  GithubToCanvas.new(mode: 'build_course', 
+                    file_to_convert: options[:build_course],
+                    fis_links: !!options[:fis], 
+                    remove_header_and_footer: !!options[:remove_header_and_footer],
+                    forkable: !!options[:forkable])
+  abort
 end
+
+if options[:add_to_course]
+  if options[:course_id]
+    GithubToCanvas.new(mode: 'add_to_course', 
+                      course_id: options[:course_id], 
+                      file_to_convert: options[:add_to_course],
+                      fis_links: !!options[:fis], 
+                      remove_header_and_footer: !!options[:remove_header_and_footer],
+                      forkable: !!options[:forkable])
+  else
+    puts '--course required'
+  end
+  abort
+end
+
+if options[:update_course_lessons]
+  GithubToCanvas.new(mode: 'update_course_lessons', 
+                    file_to_convert: options[:update_course_lessons],
+                    fis_links: !!options[:fis], 
+                    remove_header_and_footer: !!options[:remove_header_and_footer],
+                    forkable: !!options[:forkable])
+  abort
+end
+
 
 if !options[:type]
   if Dir.glob("**/*/").empty?
@@ -187,7 +296,7 @@ end
 
 if options[:create_lesson]
   GithubToCanvas.new(mode: "create", 
-                    course: options[:course], 
+                    course_id: options[:course_id], 
                     filepath: Dir.pwd, 
                     file_to_convert: options[:file_to_convert],
                     branch: options[:branch], 
@@ -202,7 +311,7 @@ end
 
 if options[:align]
   GithubToCanvas.new(mode: "align", 
-                    course: options[:course], 
+                    course_id: options[:course_id], 
                     id: options[:id],
                     filepath: Dir.pwd,
                     file_to_convert: options[:file_to_convert], 
