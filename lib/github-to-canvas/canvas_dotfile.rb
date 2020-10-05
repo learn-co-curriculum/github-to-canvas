@@ -5,21 +5,21 @@ class CanvasDotfile
     File.file?(".canvas")
   end
 
-  def self.update_or_create(filepath, response, course, type)
+  def self.update_or_create(options, response)
     if self.exists?
-      if type == "assignment" || type == "discussion"
-        canvas_data = self.update_assignment_data(response, course, type)
+      if options[:type] == "assignment" || options[:type] == "discussion"
+        canvas_data = self.update_assignment_data(response, options[:course_id], options[:type])
       else
-        canvas_data = self.update_page_data(response, course, type)
+        canvas_data = self.update_page_data(response, options[:course_id], options[:type])
       end
     else
-      if type == "assignment" || type == "discussion"
-        canvas_data = self.create_assignment_data(response, course, type)
+      if options[:type] == "assignment" || options[:type] == "discussion"
+        canvas_data = self.create_assignment_data(response, options[:course_id], options[:type])
       else
-        canvas_data = self.create_page_data(response, course, type)
+        canvas_data = self.create_page_data(response, options[:course_id], options[:type])
       end
     end
-    self.create_canvas_dotfile(filepath, canvas_data)
+    self.create_canvas_dotfile(options[:filepath], canvas_data)
   end
 
   def self.create_canvas_dotfile(filepath, canvas_data)
@@ -64,7 +64,7 @@ class CanvasDotfile
 
   def self.update_page_data(response, course, type)
     canvas_data = YAML.load(File.read(".canvas"))
-    if canvas_data[:lessons].none? { |lesson| lesson[:page_id] == response['page_id'] && lesson[:course_id] == course.to_i && lesson[:canvas_url] == response['html_url']}
+    if canvas_data[:lessons].none? { |lesson| lesson[:id] == response['page_id'] && lesson[:course_id] == course.to_i && lesson[:canvas_url] == response['html_url']}
       lesson_data = {
         id: response['page_id'],
         course_id: course.to_i,
