@@ -1,13 +1,58 @@
 require 'redcarpet'
-class RepositoryConverter
 
-  def self.convert(filepath, readme, branch, remove_header_and_footer)
-    if remove_header_and_footer
-      readme = self.remove_header(readme)
-      readme = self.remove_footer(readme)
+class CustomRender < Redcarpet::Render::HTML
+  def block_code(code, lang)
+    "<pre>" \
+      "<code>#{multi_line(code)}</code>" \
+    "</pre>"
+  end
+
+  def multi_line(code)
+    code.gsub(/\n(?=[^.])/, "<br />")
+  end
+end
+
+class RepositoryConverter
+  def self.local_file_conversion(options)
+    GithubInterface.get_updated_repo(options[:filepath], options[:branch])
+    markdown = RepositoryInterface.read_local_file(options[:filepath], options[:file_to_convert])
+    raw_remote_url = self.set_raw_image_remote_url(options[:filepath])
+    
+    markdown = self.fix_local_images(options, markdown, raw_remote_url)
+    html = self.convert_to_html(markdown)
+    # self.fix_local_html_links(options, html, options[:filepath])
+  end
+
+  def self.remote_file_conversion(options)
+    markdown = GithubInterface.read_remote(options[:filepath])
+    raw_remote_url = self.set_raw_image_remote_url(options[:filepath])
+    markdown = self.fix_local_images(options, markdown, raw_remote_url)
+    html = self.convert_to_html(markdown)
+    # self.fix_local_html_links(options, html, options[:filepath])
+  end
+
+  def self.convert_to_html(markdown)
+    redcarpet = Redcarpet::Markdown.new(CustomRender, options={tables: true, autolink: true, fenced_code_blocks: true})
+    html = redcarpet.render(markdown)
+    self.remove_line_breaks(html)
+  end
+
+  def self.adjust_converted_html(options, html)
+    
+    if options[:remove_header_and_footer]
+      html = self.remove_header_and_footer(html)
     end
-    self.fix_local_images(filepath, readme, branch)
-    self.convert_to_html(filepath, readme)
+    
+    if options[:fis_links]
+      html = self.add_fis_links(options, html)
+    end
+    html
+  end
+
+  def self.remove_header_and_footer(html)
+    new_html = self.remove_html_header(html)
+    new_html = self.remove_footer(new_html)
+    new_html
   end
 
   def self.remove_header(readme)
@@ -16,21 +61,49 @@ class RepositoryConverter
   end
 
   def self.remove_footer(readme)
-    readme.gsub(/<p (.+?)<\/p>/,"")
+    readme.gsub(/<p class='util--hide'(.+?)<\/p>/,"")
   end
 
-  def self.fix_local_images(filepath, readme, branch)
-    raw_remote_url = self.set_raw_image_remote_url(filepath)
-    self.adjust_local_markdown_images(readme, raw_remote_url, branch)
-    self.adjust_local_html_images(readme, raw_remote_url)
+  def self.remove_html_header(html)
+    html.gsub(/<h1>.*<\/h1>/,"")
   end
+
+  def self.fix_local_html_links(options, html, filepath)
+    # fixes relative hyperlinks by appending the github path to the file
+    filepath_base = filepath.match(/https:\/\/github.com\/.*?\/.*?\//).to_s
+    filepath_base = self.get_github_base_url(filepath)
+    html.gsub!(/a href="(?!(http|#)).*?"/) {|local_link|
+      local_link[8..-2]
+    }
+  end
+
+  def self.fix_local_images(options, markdown, raw_remote_url)
+    # fixes markdown images with relative links by appending the raw githubusercontent path to the file
+    self.adjust_local_markdown_images(markdown, raw_remote_url, options[:branch])
+    self.adjust_local_html_images(markdown, raw_remote_url, options[:branch])
+    markdown
+  end
+
+  def self.get_github_base_url(filepath)
+    remote = GithubInterface.git_remote(filepath)
+    remote.gsub!("git@github.com:","https://github.com/")
+    remote.gsub!(/.git$/,"")
+    remote.strip! 
+  end
+
 
   def self.set_raw_image_remote_url(filepath)
-    remote = GithubInterface.git_remote(filepath)
-    remote.gsub!("git@github.com:","https://raw.githubusercontent.com/")
-    remote.gsub!("https://github.com/","https://raw.githubusercontent.com/")
-    remote.gsub!(/.git$/,"")
-    remote.strip!
+    if filepath.include? 'https://github.com/'
+      remote = filepath
+    else
+      remote = GithubInterface.git_remote(filepath)
+    end
+    raw_remote = remote.gsub("git@github.com:","https://raw.githubusercontent.com/")
+    raw_remote = raw_remote.gsub("https://github.com/","https://raw.githubusercontent.com/")
+    raw_remote = raw_remote.gsub(/\/blob\/master\/.*$/,"")
+    raw_remote = raw_remote.gsub(/\/blob\/main\/.*$/,"")
+    raw_remote = raw_remote.gsub(/.git$/,"")
+    raw_remote.strip
   end
 
   def self.get_repo_url(filepath)
@@ -53,33 +126,45 @@ class RepositoryConverter
     }
   end
 
-  def self.adjust_local_html_images(readme, raw_remote_url)
+  def self.adjust_local_html_images(readme, raw_remote_url, branch)
     readme.gsub!(/src=(\'|\")[\s\S]*?(\'|\")/) { |image_source|
       if !image_source.match?('amazonaws.com') && !image_source.match?('https://') && !image_source.match?('http://') && !image_source.match?('youtube')
         image_source.gsub!(/(\'|\")/, "")
         image_source.gsub!(/src=/, '')
         image_source.strip!
-        'src="' + raw_remote_url + '/master/' + image_source + '"'
+        'src="' + raw_remote_url + '/' + branch + '/' + image_source + '"'
       else
         image_source
       end
     }
   end
 
-  def self.convert_to_html(filepath, readme)
-    redcarpet = Redcarpet::Markdown.new(Redcarpet::Render::HTML, options={tables: true, autolink: true, fenced_code_blocks: true})
-    # File.write("#{filepath}/README.html", redcarpet.render(readme))
-    redcarpet.render(readme)
+  def self.remove_line_breaks(html)
+    html.gsub("\n",' ')
   end
 
-  def self.add_fis_links(filepath, readme, forkable)
-    repo_path = self.get_repo_url(filepath)
-    repo_name = repo_path.split('/')[-1]
-    repo_org = repo_path.split('/')[-2]
+  
 
-    header = self.create_github_link_header(repo_path, forkable)
-    data_element = self.create_data_element(repo_org, repo_name)
-    data_element + header + readme
+  def self.get_repo_info(filepath)
+    if !filepath.match?('https://github.com')
+      repo_path = self.get_repo_url(filepath)
+    else
+      repo_path = filepath
+    end
+
+    {
+      repo_path: repo_path,
+      repo_name: repo_path.split('/')[4],
+      repo_org: repo_path.split('/')[3]
+    }
+  end
+  
+  def self.add_fis_links(options, html)
+    repo_info = self.get_repo_info(options[:filepath])
+    html = html.sub(/<div id="git-data-element.*<header class="fis-header.*<\/header>/,'') # remove existing fis header
+    header = self.create_github_link_header(repo_info[:repo_path], options[:forkable])
+    data_element = self.create_data_element(repo_info[:repo_org], repo_info[:repo_name])
+    data_element + header + html
   end
 
   def self.create_github_link_header(repo_path, forkable)
@@ -102,4 +187,5 @@ class RepositoryConverter
     "<div id='git-data-element' data-org='#{repo_org}' data-repo='#{repo_name}'></div>"
   end
 
+  
 end
