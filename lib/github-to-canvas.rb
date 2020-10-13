@@ -1,4 +1,3 @@
-require 'byebug'
 require_relative './github-to-canvas/create_canvas_lesson'
 require_relative './github-to-canvas/update_canvas_lesson'
 require_relative './github-to-canvas/canvas_dotfile'
