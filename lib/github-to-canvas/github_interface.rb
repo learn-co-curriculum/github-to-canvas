@@ -1,3 +1,5 @@
+require 'json'
+require 'rest-client'
 class GithubInterface
 
   def self.cd_into_and(filepath, command)
@@ -44,4 +46,36 @@ class GithubInterface
   def self.git_push(filepath, branch)
     self.cd_into_and(filepath, "git push origin #{branch}")
   end
+
+  def self.read_remote(url)
+    if url.match(/https:\/\/github.com\//)
+      url = url.sub(/https:\/\/github.com\//, 'https://raw.githubusercontent.com/')
+      url = url.sub(/blob\//, '')
+    end
+    if !url.end_with?('.md')
+      url_fallback = url + '/main/README.md'
+      url = url + '/master/README.md'
+    end
+    begin
+      response = RestClient.get(url)
+    rescue
+      begin
+        response = RestClient.get(url_fallback)
+      rescue
+        puts 'Error reading ' + url
+      end
+    end
+    
+    response.body
+  end
+
+  def self.save_to_github(filepath, branch)
+    puts 'Adding .canvas file'
+    self.git_add(filepath, '.canvas')
+    puts 'Commiting .canvas file'
+    self.git_commit(filepath, 'AUTO: add .canvas file after migration')
+    puts 'Pushing .canvas file'
+    self.git_push(filepath, branch)
+  end
+  
 end
