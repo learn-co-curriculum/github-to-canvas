@@ -6,7 +6,7 @@ The `github-to-canvas` gem is designed to aid in integrating GitHub and the
 Canvas LMS. This gem takes a GitHub repository's `README.md` file, converts it
 to HTML, and pushes it to Canvas using the Canvas API. This gem can also update
 existing Canvas lessons, allowing continuous alignment of content between GitHub
-and Canvas, using the GitHub repository as the single source of truth.
+and Canvas.
 
 This gem is built for use internally at [Flatiron School][], so some features may be
 specific to Flatiron School branding and needs. Access to the
