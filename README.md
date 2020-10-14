@@ -91,7 +91,7 @@ Relevant options:
   Flatiron School students.
 - `--remove-header-and-footer`, `-r`: Removes top lesson header and any Flatiron
   School specific footer links before converting to HTML. Removing top lesson
-  header prevent duplicate titles while viewing in Canvas.
+  header prevents duplicate titles while viewing in Canvas.
 - `--create-from-github`: Requires a GitHub repository URL. Also requires
   `--course` and `--type`. Creates a Canvas lesson, reading from the remote repo
   instead of a local repository. Repository must be public.
@@ -114,11 +114,10 @@ branded footers. It will also add an HTML header for Canvas that includes links
 back to the repository.
 
 If the lesson type is an assignment, a Fork button will also be added to the
-HTML header. Because the command didn't specify, the type of lesson is
-determined based on the structure of the local repo - if it has sub-folders, the
-lesson will become an assignment; if there are no sub-folders, the lesson will
-become a page. If the lesson type is a page, the `--forkable` option will be
-ignored.
+HTML header. Because the command didn't specify, the type of lesson is determined
+based on the local repo structure - if it has sub-folders, the lesson will become
+an assignment; if there are no sub-folders, the lesson will become a page. If the
+lesson type is a page, the `--forkable` option will be ignored.
 
 Creating a lesson this way will also produce a `.canvas` file. This file
 contains info about the Canvas lesson that was created.
@@ -154,7 +153,7 @@ be directly pasted into Canvas' HTML editor if a manual process is needed.
 
 If you previously created a Canvas lesson from a local repository, you should
 have a `.canvas` file present in the repo. If that file is present, you can run
-the following command to automatically update that same Canvas lesson:
+the following command to update the listed Canvas lesson automatically:
 
 ```sh
 github-to-canvas -a -lr --forkable
@@ -182,7 +181,7 @@ using the info provided. Type must match the existing lesson type.
 
 ### Course Creation
 
-This gem has the ability to create Canvas courses from scratch. These features
+This gem can create Canvas courses from scratch. These features
 are still in development and may not work for all course designs. Quiz and
 Discussion Topic lesson creation is still under development and will not work.
 
@@ -314,9 +313,9 @@ associated repository.
 ### HTML Code Snippets Do Not Render
 
 The Canvas API renders all HTML it receives. If your repository's markdown
-includes HTML that is not meant to be rendered (i.e. lessons on HTML or
-JavaScript that include HTML code snippets), the content will be rendered as
-part of the page's HTML, resulting in unusual display errors in Canvas.
+includes HTML that is not meant to be rendered, the content will be rendered as
+part of the page's HTML, resulting in unusual display errors in Canvas. Examples of
+this would be lessons on HTML or JavaScript that include HTML code snippets.
 
 To fix any rendering issues in Canvas, go to the Canvas WYSIWYG editor for the
 afflicted lesson. Click the HTML editor option (`</>` button in the lower right) to
@@ -352,9 +351,9 @@ issues, please open a new issue with a markdown example to replicate the error.
 
 ### Markdown Formatting Issues Cause Errors in Canvas
 
-Individual markdown headers, paragraphs and code snippets should be separated by
-an empty line in the markdown. Without these empty lines, the contents will be
-interpretted as one continuous paragraph and ignore formatting.
+An empty line should separate individual markdown headers, paragraphs and code snippets
+in the markdown. Without these empty lines, the contents will be interpretted as one
+continuous paragraph and ignore formatting.
 
 ## Overview of GitHub to Canvas workflows
 
@@ -362,9 +361,8 @@ Using this gem, you can maintain Canvas courses in multiple ways - either by
 creating and updating individual Canvas lessons or through the YAML file process.
 
 At Flatiron School, we use the Canvas blueprint course feature. We use the
-github-to-canvas gem to update the blueprint copy of lessons. These updates will
-appear in future copies of the course, or can be synced down to existing course
-copies.
+github-to-canvas gem to update the blueprint copy of lessons. These updates will appear
+in future copies of the course or when synced down associated courses in Canvas.
 
 ![github-to-canvas workflow chart](./images/github-to-canvas_workflow.png)
 
