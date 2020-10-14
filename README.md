@@ -65,15 +65,15 @@ are present by running `ENV` and finding them in the output list.
 
 The GitHub to Canvas gem can be used for the following:
 
-- [Create a Canvas Lesson from a Local Repository][#create]
-- [Create a Canvas Lesson from a Remote Repository][#createremote]
-- [Read a Remote Repository as HTML][#read]
-- [Update a Canvas Lesson from a Local Repository][#update]
-- [Update a Canvas Lesson from a Remote Repository][#updateremote]
-- [Retrieve Canvas Course Information as YAML Markdown][#query]
-- [Map GitHub Repositories to a Canvas Course YAML file][#map]
-- [Create New Canvas Course from a YAML file][#buildcourse]
-- [Update Lessons in an Existing Course from a YAML file][#updatecourse]
+- [Create a Canvas Lesson from a Local Repository](#create)
+- [Create a Canvas Lesson from a Remote Repository](#createremote)
+- [Read a Remote Repository as HTML](#read)
+- [Update a Canvas Lesson from a Local Repository](#update)
+- [Update a Canvas Lesson from a Remote Repository](#updateremote)
+- [Retrieve Canvas Course Information as YAML Markdown](#query)
+- [Map GitHub Repositories to a Canvas Course YAML file](#map)
+- [Create New Canvas Course from a YAML file](#buildcourse)
+- [Update Lessons in an Existing Course from a YAML file](#updatecourse)
 
 ### Creating and Updating Canvas Lessons
 
