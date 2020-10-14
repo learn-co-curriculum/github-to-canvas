@@ -4,19 +4,15 @@
 
 The `github-to-canvas` gem is designed to aid in integrating GitHub and the
 Canvas LMS. This gem takes a GitHub repository's `README.md` file, converts it
-to HTML, and pushes it to Canvas using the Canvas API. The gem also has the ability
-to updates a repository to include a `.canvas` file containing Canvas specific
-information.
-
-With  the `.canvas` file in place, this gem can be used to continuously align
-content between GitHub and Canvas using the GitHub repository as the single
-source of truth.
+to HTML, and pushes it to Canvas using the Canvas API. This gem can also update
+existing Canvas lessons, allowing continuous alignment of content between GitHub
+and Canvas, using the GitHub repository as the single source of truth.
 
 This gem is built for use internally at [Flatiron School][], so some features may be
 specific to Flatiron School branding and needs. Access to the
 [Canvas LMS API][] and the ability to add pages and assignments to a Canvas
 course are required. Write access to the GitHub repository being converted is
-also required for committing `.canvas` files.
+also required for some features.
 
 ## Installation
 
@@ -47,7 +43,7 @@ echo "$(export 'CANVAS_API_KEY=your-new-API-key-here' | cat - ~/.bash_profile)" 
 
 ### Add Canvas API Base Path
 
-The exact Canvas API path is specific to where you Canvas LMS is located. For example,
+The exact Canvas API path is specific to where your Canvas LMS is located. For example,
 Flatiron School's base path is `https://learning.flatironschool.com/api/v1`. Add this path
 as an `ENV` variable like the API key. **Do not add a `/` at the end after `/api/v1`.**
 
@@ -65,66 +61,338 @@ After both the API key and path are added to `~/.zshrc`, run `source ~/.zshrc` (
 to make them available in your current terminal. You can verify these variables
 are present by running `ENV` and finding them in the output list.
 
-## Usage
+## Common Uses
 
-### Create a Canvas Lesson
+### Creating and Updating Canvas Lessons
 
-To create a Canvas lesson from a GitHub `README.md` file, at minimum, you will
-need to know the Canvas course id you are going to add to. This id can be found
-in the URL of the course.
+Relevant options:
 
-Once you have the course id, you will need to do the following:
+- `--create-lesson`, `-c`: Requires a Canvas course ID. Creates a new Canvas
+  lesson, converting the local repository's README.md to HTML. Adds `.canvas`
+  file to remote repository
+- `--align`, `-a`: Updates a canvas lesson based on the local repository's
+  README.md. If no other options are used, `--align` will look for a `.canvas`
+  file to know what to lesson to update
+- `--course`: Provide a specific course ID. When used with `--id`, this can
+  override the default behavior for `--align`, allowing you to update any
+  existing lesson and ignore the `.canvas` file if present.
+- `--id`: Provide a specific lesson ID. This can be found in the URL of the
+  specific lesson. For Pages, used the slugified lesson title.
+- `--type`: Sets the type of Canvas lesson to be created (page, assignment or
+  discussion). If no type, type decided based on repository structure.
+- `--name`: Can be used to override default naming behavior. By default, Canvas
+  lesson names are determined by the first top-level (`#`) header in the
+  repository's markdown file.
+- `--fis-links`, `-l`: Adds additional Flatiron School HTML header after
+  markdown conversion, including links back to the GitHub repo and it's issue
+  form.
+- `--forkable`: Adds a **Fork** button to the Flatiron School HTML header. For
+  use with custom Canvas JS to enable Canvas assignment forking workflow for
+  Flatiron School students.
+- `--remove-header-and-footer`, `-r`: Removes top lesson header and any Flatiron
+  School specific footer links before converting to HTML. Removing top lesson
+  header prevent duplicate titles while viewing in Canvas.
+- `--create-from-github`: Requires a GitHub repository URL. Also requires
+  `--course` and `--type`. Creates a Canvas lesson, reading from the remote repo
+  instead of a local repository. Repository must be public.
+- `--align-from-github`: Requires a GitHub repo URL, `--course`, `--id`, and
+  `--type`. Updates a Canvas lesson from a remote repository.
+- `--read-from-github`: Requires a GitHub repo URL. Reads a remote repository
+  and converts its contents to HTML, but does not push to Canvas.
 
-1. Clone down the repository you'd like to push to Canvas.
-2. Change directory into the new local repository
-3. Run `github-to-canvas --create <your-course-id>` from inside the local repo
+#### Create a Canvas Lesson from a Local Repository
 
-If everything is set up properly, `github-to-canvas` will create a Canvas lesson
-using `master` branch `README.md` and the name of the current folder. By
-default, if the repository contains folders, an **assignment** will be created.
-Otherwise, a **page** will be created.
+Navigate into a repository folder cloned down to your local machine and run:
 
-### Saving `.canvas` to GitHub
+```sh
+github-to-canvas -c <CANVAS_COURSE_ID> -lr --forkable
+```
 
-Using `--save-to-github` will create a `.canvas` YAML file in the local repo and attempt to commit
-and push it to the remote repository. This file contains the course id, the newly
-created page id, and the Canvas URL to the lesson for future reference. 
+The command above will create a Canvas lesson in the course provided. It will
+also remove the repositories top-level header and remove any old Flatiron
+branded footers. It will also add an HTML header for Canvas that includes links
+back to the repository.
 
-If you create multiple Canvas lessons from the same repository, each lesson's
-Canvas data will be stored in the `.canvas` file.
+If the lesson type is an assignment, a Fork button will also be added to the
+HTML header. Because the command didn't specify, the type of lesson is
+determined based on the structure of the local repo - if it has sub-folders, the
+lesson will become an assignment; if there are no sub-folders, the lesson will
+become a page. If the lesson type is a page, the `--forkable` option will be
+ignored.
 
-### Update an Existing Canvas Lesson
+Creating a lesson this way will also produce a `.canvas` file. This file
+contains info about the Canvas lesson that was created.
 
-To update an existing Canvas lesson using a local repository, **a `.canvas` file
-must be present in the repo**, as it contains the lesson information for the
-Canvas API.
+#### Create a Canvas Lesson from a Remote Repository
 
-1. Clone down and/or change directory into the repository you'd like to update
-2. Run `github-to-canvas --align` from inside the local repo
+To create from a remote repo, run the following command:
 
-`github-to-canvas` will get the course id and page/assignment id from the
-`.canvas` file and update the associated Canvas lesson. If there are multiple
-Canvas lessons included in the `.canvas` file, each lesson will be updated (i.e.
-you have the same lesson in two courses created from one repository).
+```sh
+github-to-canvas --create-from-github <URL> --course <CANVAS_COURSE_ID> --type <TYPE> -lr --forkable
+```
 
-### Options
+This command will read a GitHub markdown based on the provided URL and create a
+Canvas lesson based on it. We need to provide the Course ID and the type of
+lesson (`page` or `assignment`) as type can't be determined automatically. We'll
+also continue to use `-lr --forkable` like the previous command to set up the
+lesson the same way as before.
 
-This gem provides to the following options:
+The repository must be public in order to read the markdown file.
 
-* `-c, --create-lesson COURSE` - Creates a new Canvas lesson, converting the local repository's README.md to HTML. Adds .canvas file to remote repository
-* `-a, --align` - Updates a canvas lesson based on the local repository's README.md
-* `-n, --name NAME` - Sets the name of the new Canvas lesson to be created. If no name is given, repository folder name is used
-* `-t, --type TYPE` - Sets the type of Canvas lesson to be created (page, assignment or discussion). If no type, type decided based on repository structure
-* `-f, --file FILE` - Looks for and uses a markdown file in the currentt folder as source for conversion. Default file is README.md
-* `-b, --branch BRANCH` - Sets the repository branch used for lesson creation
-* `-s, --save-to-github` - Creates a local .canvas file and attempts to commit and push it to the GitHub repository
-* `-l, --fis-links` - Adds additional Flatiron School HTML after markdown conversion           
-* `-r, --remove-header-and-footer` - Removes top lesson header and any Learn.co specific footer links before converting to HTML             
-* `-o, --only-content` - For align functionality only - updates the HTML content of a lesson without changing the name
-* `-h, --help` - Outputs examples commands and all options
-                   
+#### Read a Remote Repository as HTML
+
+To read the contents of a remote repo:
+
+```sh
+github-to-canvas --read-from-github <URL>
+```
+
+This will produce an HTML conversion of the repository's markdwon. This HTML can
+be directly pasted into Canvas' HTML editor if a manual process is needed.
+
+#### Update a Canvas Lesson from a Local Repository
+
+If you previously created a Canvas lesson from a local repository, you should
+have a `.canvas` file present in the repo. If that file is present, you can run
+the following command to automatically update that same Canvas lesson:
+
+```sh
+github-to-canvas -a -lr --forkable
+```
+
+If you don't have or want to use the `.canvas` file, you can also specify the
+course ID and lesson ID:
+
+```sh
+github-to-canvas -a --course <CANVAS_COURSE_ID> --id <CANVAS_LESSON_ID> -lr --forkable
+```
+
+Canvas course and lesson IDs can be found in the URL.
+
+#### Update a Canvas Lesson from a Remote Repository
+
+You can update an existing Canvas course using a remote GitHub repository like so:
+
+```sh
+github-to-canvas --align-from-github <URL> --course <COURSE_ID> --id <LESSON_ID> --type <TYPE> -lr --forkable
+```
+
+This will read remote markdown using the provided URL and update a Canvas course
+using the info provided. Type must match the existing lesson type.
+
+### Course Creation
+
+This gem has the ability to create Canvas courses from scratch. These features
+are still in development and may not work for all course designs. Quiz and
+Discussion Topic lesson creation is still under development and will not work.
+
+By providing a YAML file of the desired course structure, this gem can create a
+course, add in modules, and populate those modules with pages and assignments.
+The required YAML file must follow a specific structure. Using the steps below,
+this gem can create the necessary YAML markup from existing Canvas courses.
+
+#### Retrieve Canvas Course Information as YAML
+
+To create YAML markup of an existing Canvas course, use the following:
+
+```sh
+github-to-canvas --query <CANVAS_COURSE_ID>
+```
+
+This command will use the Canvas API to read a course's information, including
+its module and lesson structure and lesson URLs. YAML markup will be produced as a result. This
+output can be directly saved to a file, which will make the next step a little
+easier:
+
+```sh
+github-to-canvas --query <CANVAS_COURSE_ID> > query_results.yml
+```
+
+The output will look similar to this:
+
+```yml
+---
+:name: The Course's Title
+:id: 111
+:modules:
+- :id: 2020
+  :name: First Module's Name
+  :lessons:
+  - id: slugified-page-name
+    title: This is the Title Of The First Lesson, a Page
+    indent: 0
+    type: Page
+    html_url: https://learning.flatironschool.com/courses/111/modules/items/27001
+    page_url: slugified-page-name
+    url: https://learning.flatironschool.com/api/v1/courses/111/pages/slugified-page-name
+    published: false
+    repository: ''
+  - id: 333
+    title: This is the Title Of The Second Lesson, an Assignment
+    indent: 1
+    type: Assignment
+    html_url: https://learning.flatironschool.com/courses/111/modules/items/27002
+    page_url: ''
+    url: https://learning.flatironschool.com/api/v1/courses/111/assignments/333
+    published: false
+    repository: ''
+- :id: 2021
+  :name: Second Module's Name
+  :lessons:
+```
+
+The output YAML will not include associated GitHub repository information.
+
+#### Map GitHub Repositories to a Canvas Course YAML
+
+To associate repositories to an existing course YAML, the following command can be used:
+
+```sh
+github-to-canvas --map <YAML_FILE>
+```
+
+For this feature to work, all Canvas lessons must have the GitHub HTML header
+that is added using `-l`. This header contains the necessary repo information.
+
+Save the output YAML to another file if you want to use it for later course
+creation. For example:
+
+```sh
+github-to-canvas --map query_results.yml > course_structure.yml
+```
+
+The resulting YAML file will contain course information, the module and lesson
+structure, and each lesson's associated GitHub repository.
+
+#### Create New Canvas Course from YAML
+
+To create a Canvas course with this gem, you will need a correctly structured
+YAML file with the course info, modules, lessons and associated lesson
+repositories. In addition, all lessons must have a type (`Page` or
+`Assignment`), a repository, and a title. Other lesson options are currently
+ignored. 
+
+With the necessary data configured, use the `--build-course` option and pass in
+the course's YAML file:
+
+```sh
+github-to-canvas --build-course course_structure.yml -lr --forkable
+```
+
+This command will cause the following to happen:
+
+- Create a Canvas course using the top level `:name:` in the YAML data
+- Create the first module
+- Create the first lesson using the repository, title and type, as well as additional command options
+- Add the newly created lesson to the current module
+- Create the second lesson and add it to the module...
+- Repeate process until all modules and lessons are created
+
+#### Align an Existing Course from YAML
+
+After you've created a course using the previous process, go through the
+previous steps of `--query` and `--map` to get a fully updated YAML for your
+newly created course.
+
+```sh
+github-to-canvas --query <COURSE_ID> > query_results.yml
+github-to-canvas --map query_results.yml > your_new_course.yml
+```
+
+With this data file, you can use the following command to update all lessons in
+a course based on their GitHub repo:
+
+```sh
+github-to-canvas --update-course YAML_FILE -lr --forkable
+```
+
+The gem will iterate over the data and update every lesson according to the
+associated repository.
+
+## Known Issues
+
+### HTML Code Snippets Do Not Render
+
+The Canvas API renders all HTML it receives. If your repository's markdown
+includes HTML that is not meant to be rendered (i.e. lessons on HTML or
+JavaScript that include HTML code snippets), the content will be rendered as
+part of the page's HTML, resulting in unusual display errors in Canvas.
+
+To fix any rendering issues in Canvas, go to the Canvas WYSIWYG editor for the
+afflicted lesson. Click the HTML editor option (`</>` button in the lower right) to
+switch to HTML.
+
+Read the GitHub repo as HTML:
+
+```sh
+github-to-canvas --read-from-github URL
+```
+
+Copy the output HTML and paste it in to the Canvas editor. This should clear up
+some larger page rendering issues, but may not fix all code snippets issues. To
+fix these, switch back to the regular Canvas WYSIWYG editor, then open a second
+tab to the GitHub repo you're converting from. Copy any HTML code snippets from
+GitHub and paste them into the Canvas editor where they should be displayed.
+
+The Canvas editor will treat the pasted HTML content as code and will
+automatically replace some characters, escaping the code from the
+normal rendering process.
+
+Note that realigning after fixing this content with the gem will break the
+rendering for these lessons again. A fix is planned for this issue, but has not
+been implemented.
+
+### Multi-Line Code Snippets Render as a Single Line
+
+The Github to Canvas gem uses an existing gem, Redcarpet, to handle the Markdown to HTML
+conversion. This gem does not currently support multi-line codeblocks. This
+functionality has been added in the Github to Canvas gem through monkeypatching.
+This error should be resolved, but if you encounter code snippet rendering
+issues, please open a new issue with a markdown example to replicate the error.
+
+### Markdown Formatting Issues Cause Errors in Canvas
+
+Individual markdown headers, paragraphs and code snippets should be separated by
+an empty line in the markdown. Without these empty lines, the contents will be
+interpretted as one continuous paragraph and ignore formatting.
+
+## Overview of GitHub to Canvas workflows
+
+Using this gem, you can maintain Canvas courses in multiple ways - either by
+creating and updating individual Canvas lessons or through the YAML file process.
+
+At Flatiron School, we use the Canvas blueprint course feature. We use the
+github-to-canvas gem to update the blueprint copy of lessons. These updates will
+appear in future copies of the course, or can be synced down to existing course
+copies.
+
+![github-to-canvas workflow chart](./images/github-to-canvas_workflow.png)
+
+This can either be done with individual lessons or using a YAML files to keep
+entire courses updated.
+
+If you are using github-to-canvas in this way, changes should always be made on
+the repository, not on Canvas. Any changes made only on Canvas will get
+overwritten if the lesson is updated using the gem.
+
+## Additional Options
+
+### Specify Branch
+
+When creating or aligning content locally, you can use `--branch` (`-b`) to
+specify which branch you want to use. If you have a newer repository with a
+`main` branch instead of `master`, use this option.
+
+If you are are creating or aligning content locally, the `.canvas` file is not
+automatically committed to the repo. You can automatically commit this file by
+including the `--save-to-github` (`-s`) option. This option will attempt to
+commit and push the `.canvas` file to the remote repository.
+
+Run `github-to-canvas --help` for additional options not listed in this Readme.
 
 ## Examples of Valid Images This Gem Can Convert
+
+This gem can convert both standard inline markdown and HTML images. 
 
 Inline Markdown:
 
