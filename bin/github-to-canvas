@@ -142,10 +142,10 @@ OptionParser.new do |opts|
           "Creates a new Canvas lesson from a remote GitHub Readme. --course and --type options required") do |url|
             options[:create_from_github] = url
           end
-  opts.on("--create-quiz-from-github GITHUB_URL",
-          "Creates a new Canvas quiz from a remote GitHub YAML file. --course option required") do |url|
-            options[:quiz_from_github] = url
-          end
+  # opts.on("--create-quiz-from-github GITHUB_URL",
+  #         "Creates a new Canvas quiz from a remote GitHub YAML file. --course option required") do |url|
+  #           options[:quiz_from_github] = url
+  #         end
   opts.on("--align-from-github GITHUB_URL",
           "Aligns an existing Canvas lesson using a remote GitHub Readme. --course, --id, and --type options required") do |url|
             options[:align_from_github] = url
