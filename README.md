@@ -266,7 +266,7 @@ This command will cause the following to happen:
 
 #### Update Lessons in an Existing Course from a YAML file <a name="updatecourse"></a>
 
-With a course YAML file, the GitHub to Canvas gem can be used to update all lessons in a course
+The GitHub to Canvas gem can be used to update all lessons in a course
 with a single command. To do this, you will need an up-to-date course YAML file with repositories
 mapped to each lesson.
 
