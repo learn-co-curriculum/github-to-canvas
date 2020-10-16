@@ -30,13 +30,13 @@ called `CANVAS_API_KEY`.
 If you are using Zsh, the following command will add your new key to the top of `~/.zshrc`:
 
 ```sh
-echo "$(export 'CANVAS_API_KEY=your-new-API-key-here' | cat - ~/.zshrc)" > ~/.zshrc
+echo "$(export 'CANVAS_API_KEY=<your-new-API-key-here>' | cat - ~/.zshrc)" > ~/.zshrc
 ```
 
 If you are using Bash, use this command instead:
 
 ```sh
-echo "$(export 'CANVAS_API_KEY=your-new-API-key-here' | cat - ~/.bash_profile)" > ~/.bash_profile
+echo "$(export 'CANVAS_API_KEY=<your-new-API-key-here>' | cat - ~/.bash_profile)" > ~/.bash_profile
 ```
 
 > If you aren't sure which you use, run `echo $SHELL`
