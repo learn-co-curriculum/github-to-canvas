@@ -304,11 +304,12 @@ Read the GitHub repo as HTML:
 github-to-canvas --read-from-github URL
 ```
 
-Copy the output HTML and paste it in to the Canvas editor. This should clear up
-some larger page rendering issues, but may not fix all code snippets issues. To
-fix these, switch back to the regular Canvas WYSIWYG editor, then open a second
-tab to the GitHub repo you're converting from. Copy any HTML code snippets from
-GitHub and paste them into the Canvas editor where they should be displayed.
+Copy the output HTML and paste it into the Canvas editor (if your lesson has a
+`<header>` with github links, leave this in). This should clear up some larger
+page rendering issues, but may not fix all code snippets issues. To fix these,
+switch back to the regular Canvas WYSIWYG editor, then open a second tab to the
+GitHub repo you're converting from. Copy any HTML code snippets from GitHub and
+paste them into the Canvas editor where they should be displayed.
 
 The Canvas editor will treat the pasted HTML content as code and will
 automatically replace some characters, escaping the code from the
