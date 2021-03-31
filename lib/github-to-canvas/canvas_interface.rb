@@ -46,41 +46,37 @@ class CanvasInterface
     JSON.parse(response.body)
   end
 
-  def self.create_quiz(options, quiz_data)
-    
-  end
-
   def self.add_to_module(course_id, module_info, lesson_info)
     # POST /api/v1/courses/:course_id/modules/:module_id/items
     url = "#{ENV['CANVAS_API_PATH']}/courses/#{course_id}/modules/#{module_info["id"]}/items"
     
-    if lesson_info["type"] == "Page"
+    if lesson_info["type"] == "Page" || lesson_info["type"] == "page"
       payload = {
-      'module_item[title]' => lesson_info["title"],
-      'module_item[type]' => lesson_info["type"],
-      'module_item[indent]' => 0,
-      'module_item[completion_requirement][type]' => 'must_view'
-    }
+        'module_item[title]' => lesson_info["title"],
+        'module_item[type]' => lesson_info["type"].capitalize,
+        'module_item[indent]' => 0,
+        'module_item[page_url]' => lesson_info["id"],
+        'module_item[completion_requirement][type]' => 'must_view'
+      }
     elsif lesson_info["type"] == "Quiz"
       puts "Quiz needs to be added manually - #{lesson_info['title']} - lesson_info["
     else
       
       payload = {
         'module_item[title]' => lesson_info["title"],
-        'module_item[type]' => lesson_info["type"],
+        'module_item[type]' => lesson_info["type"].capitalize,
         'module_item[indent]' => 1,
+        'module_item[content_id]' =>  lesson_info["id"],
         'module_item[completion_requirement][type]' => 'must_submit'
       }
     end
     begin
       response = RestClient.post(url, payload, self.headers)
     rescue
-      puts "Something went wrong while add lesson #{lesson_info["id"]} to module #{module_info["id"]} in course #{course_id}" if lesson_info["type"] == "Assignment"
-      puts "Something went wrong while add lesson #{lesson_info["page_url"]} to module #{module_info["id"]} in course #{course_id}" if lesson_info["type"] == "Page"
+      puts "Something went wrong while adding lesson #{lesson_info["id"]} to module #{module_info["id"]} in course #{course_id}" if lesson_info["type"] == "Assignment"
+      puts "Something went wrong while adding lesson #{lesson_info["page_url"]} to module #{module_info["id"]} in course #{course_id}" if lesson_info["type"] == "Page"
       abort
     end
-
-    
     response
     
   end
@@ -95,17 +91,18 @@ class CanvasInterface
     
     begin
       headers = self.headers
-      if options[:type] == 'page'
+      if options[:type] == 'page' || options[:type] == 'Page'
         response = RestClient.get(url, headers)
         lesson_info = JSON.parse(response)
+        lesson_info = lesson_info[0] if lesson_info.kind_of?(Array)
         url = url.sub(/[^\/]+$/, lesson_info["page_id"].to_s)
       end
       response = RestClient.put(url, payload, headers)
-    rescue
+    rescue Exception => e
       puts "Something went wrong while pushing lesson #{options[:id]} to course #{options[:course_id]}"
       puts "Make sure you are working on lessons that are not locked"
+      raise e
       abort
-      ""
     end
     JSON.parse(response.body)
   end
@@ -170,6 +167,7 @@ class CanvasInterface
     [info, type]
   end
 
+
   def self.get_course_info(course, id)
     if id
       lesson_data = self.get_lesson_info(course, id)
@@ -195,6 +193,7 @@ class CanvasInterface
         while !!index
           url = "#{ENV['CANVAS_API_PATH']}/courses/#{course}/modules?page=#{index}&per_page=20"
           index += 1
+          
           response = RestClient.get(url, self.headers)
           modules = JSON.parse(response.body)
           
@@ -202,7 +201,7 @@ class CanvasInterface
             course_info[:modules] = course_info[:modules] + modules
           else
             index = nil
-          end 
+          end
         end
         
         course_info[:modules] = course_info[:modules].map do |mod|
@@ -215,11 +214,12 @@ class CanvasInterface
           while !!index
             url = "#{ENV['CANVAS_API_PATH']}/courses/#{course}/modules/#{mod['id']}/items?page=#{index}&per_page=20"
             index += 1
-            response = RestClient.get(url, headers={
-              "Authorization" => "Bearer #{ENV['CANVAS_API_KEY']}"
-            })
+            response = RestClient.get(url, self.headers)
             lessons = JSON.parse(response.body)
             lessons = lessons.map do |lesson|
+              if lesson["type"] == "ExternalUrl"
+                next
+              end
               lesson = lesson.slice("id","title","name","indent","type","html_url","page_url","url","completion_requirement", "published")
               lesson["repository"] = ""
               lesson['id'] = lesson['url'].gsub(/^(.*[\\\/])/,'')
@@ -234,7 +234,7 @@ class CanvasInterface
           end
           new_mod
         end
-
+        
         puts course_info.to_yaml
       
     rescue
@@ -243,7 +243,56 @@ class CanvasInterface
     end
   end
 
-  def self.map_course_info(file_to_convert)
+  def self.map_course_info(options)
+    course_info = YAML.load(File.read("#{Dir.pwd}/#{options[:file_to_convert]}"))
+    course_info[:modules] = course_info[:modules].map do |mod|
+      mod[:lessons] = mod[:lessons].map do |lesson|
+
+        url = lesson["url"]
+        response = RestClient.get(url, headers={
+          "Authorization" => "Bearer #{ENV['CANVAS_API_KEY']}"
+        })
+        begin
+          lesson_data = JSON.parse(response)
+          contents = lesson_data["body"] if lesson["type"] == "Page"
+          contents = lesson_data["message"] if lesson["type"] == "Discussion"
+          contents = lesson_data["description"] if lesson["type"] == "Assignment" || lesson["type"] == "Quiz"
+          if contents.nil?
+            repo = ""
+          else
+            if contents[/data-repo=\"(.*?)"/]
+              repo = contents[/data-repo=\"(.*?)"/]
+              repo = repo.slice(11..-2)
+            elsif contents[/class=\"fis-git-link\" href=\"(.*?)"/]
+              repo = contents[/class=\"fis-git-link\" href=\"(.*?)"/]
+              repo = repo.slice(27..-2)
+            else
+              repo = ""
+            end
+          end
+        rescue
+          puts 'Error while mapping course info.'
+          abort
+        end
+        
+        if repo != nil && repo != ""
+          if repo.include?('https://github.com/learn-co-curriculum/')
+            lesson["repository"] = repo
+          else
+            lesson["repository"] = "https://github.com/learn-co-curriculum/" + repo
+          end
+          puts lesson["repository"] if options[:urls_only]
+          puts "#{lesson["repository"]}, #{lesson["title"]}, #{mod[:name]}, #{lesson["type"].downcase}, , #{lesson["id"]}, #{course_info[:id]}" if options[:csv]
+        end
+        sleep(1)
+        lesson
+      end
+      mod
+    end
+    puts course_info.to_yaml if !options[:urls_only]
+  end
+
+  def self.csv(file_to_convert)
     course_info = YAML.load(File.read("#{Dir.pwd}/#{file_to_convert}"))
     course_info[:modules] = course_info[:modules].map do |mod|
       mod[:lessons] = mod[:lessons].map do |lesson|
@@ -290,12 +339,37 @@ class CanvasInterface
     puts course_info.to_yaml
   end
 
-  def self.submit_to_canvas(course_id, type, name, readme)
+  def self.copy_lesson(options)
+    types = ["page", "assignment", "quiz", "discussion"]
+    url = options[:filepath]
+    type = types.find {|type| url.match(type)}
+    options[:type] = type
+    if !url.include?(ENV['CANVAS_API_PATH'])
+      url = url.sub(/^.*\/\/.*?\//,"#{ENV['CANVAS_API_PATH']}/")
+    end
+
+    response = RestClient.get(url, headers={
+      "Authorization" => "Bearer #{ENV['CANVAS_API_KEY']}"
+    })
+
+    lesson_info = JSON.parse(response)
+    lesson_info = lesson_info.slice("title",
+                                    "name",
+                                    "description",
+                                    "body",
+                                    "message",
+                                    "shuffle_answers",
+                                    "allowed_attempts",
+                                    "question_count"
+                                    )
+    if options[:type] == "page"
+      self.update_existing_lesson(options, lesson_info["title"], lesson_info["body"])
+    else
+      self.update_existing_lesson(options, lesson_info["name"], lesson_info["description"])
+    end
+    
     
   end
-
-  
-
 
   def self.build_payload(options, name, html)
     if options[:only_update_content]
