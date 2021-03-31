@@ -61,11 +61,11 @@ class GithubInterface
     rescue
       begin
         response = RestClient.get(url_fallback)
+        return response.body
       rescue
         puts 'Error reading ' + url
       end
     end
-    
     response.body
   end
 
