@@ -1,5 +1,5 @@
 require 'redcarpet'
-
+require 'byebug'
 class CustomRender < Redcarpet::Render::HTML
   def block_code(code, lang)
     "<pre>" \
@@ -14,10 +14,10 @@ end
 
 class RepositoryConverter
   def self.local_file_conversion(options)
-    GithubInterface.get_updated_repo(options[:filepath], options[:branch])
+    # GithubInterface.get_updated_repo(options[:filepath], options[:branch])
     markdown = RepositoryInterface.read_local_file(options[:filepath], options[:file_to_convert])
     raw_remote_url = self.set_raw_image_remote_url(options[:filepath])
-    
+    markdown = self.escape_existing_html(markdown) if options[:contains_html]
     markdown = self.fix_local_images(options, markdown, raw_remote_url)
     html = self.convert_to_html(markdown)
     # self.fix_local_html_links(options, html, options[:filepath])
@@ -26,14 +26,27 @@ class RepositoryConverter
   def self.remote_file_conversion(options)
     markdown = GithubInterface.read_remote(options[:filepath])
     raw_remote_url = self.set_raw_image_remote_url(options[:filepath])
+    if options[:contains_html]
+      begin
+        markdown = self.escape_existing_html(markdown)
+      rescue
+        puts "Error reading remote markdown"
+        abort
+      end
+    end
+    if (!options[:branch])
+      options[:branch] = 'master'
+    end
     markdown = self.fix_local_images(options, markdown, raw_remote_url)
     html = self.convert_to_html(markdown)
     # self.fix_local_html_links(options, html, options[:filepath])
   end
 
   def self.convert_to_html(markdown)
-    redcarpet = Redcarpet::Markdown.new(CustomRender, options={tables: true, autolink: true, fenced_code_blocks: true})
+    renderer = CustomRender.new(escape_html: true, prettify: true, hard_wrap: true)
+    redcarpet = Redcarpet::Markdown.new(CustomRender, options={tables: true, autolink: true, fenced_code_blocks: true, disable_indented_code_blocks: true})
     html = redcarpet.render(markdown)
+    puts "Markdown converted to HTML"
     self.remove_line_breaks(html)
   end
 
@@ -43,10 +56,31 @@ class RepositoryConverter
       html = self.remove_header_and_footer(html)
     end
     
-    if options[:fis_links]
+    if options[:fis_links] || options[:git_links]
       html = self.add_fis_links(options, html)
     end
+
+    if options[:contains_html]
+      html = self.fix_escaped_inline_html_code(html)
+    end
+
     html
+  end
+
+  def self.fix_escaped_inline_html_code(html)
+    
+
+    html
+  end
+
+
+  def self.escape_existing_html(markdown)
+    markdown = markdown.gsub(/```(\n|.)*```/) { |code|
+      # all code blocks
+      code = code.gsub("<", "&lt;")
+      code = code.gsub(">", "&gt;")
+    }
+    markdown
   end
 
   def self.remove_header_and_footer(html)
@@ -56,12 +90,15 @@ class RepositoryConverter
   end
 
   def self.remove_header(readme)
-    readme.gsub!(/^# .+?\n\n/,"")
+    readme = readme.gsub(/^# .+?\n\n/,"")
     readme.gsub(/^# .+?\n/,"")
   end
 
   def self.remove_footer(readme)
     readme.gsub(/<p class='util--hide'(.+?)<\/p>/,"")
+    readme.gsub(/<p data-visibility='hidden'(.+?)<\/p>/,"")
+    readme.gsub(/<p>&lt\;p data-visibility=&#39\;hidden&#39(.+?)<\/p>/,"")
+    readme.gsub(/<p>&lt\;p class=&#39;util--hide&#39\;(.+?)<\/p>/,"")
   end
 
   def self.remove_html_header(html)
@@ -114,7 +151,7 @@ class RepositoryConverter
   end
 
   def self.adjust_local_markdown_images(readme, raw_remote_url, branch)
-    readme.gsub!(/\!\[.+\]\(.+\)/) {|image_markdown|
+    readme.gsub(/\!\[.+\]\(.+\)/) {|image_markdown|
       if !image_markdown.match?('amazonaws.com') && !image_markdown.match?('https://') && !image_markdown.match?('http://') && !image_markdown.match?('youtube')
         image_markdown.gsub!(/\(.+\)/) { |path|
           path.delete_prefix!("(")
@@ -127,12 +164,18 @@ class RepositoryConverter
   end
 
   def self.adjust_local_html_images(readme, raw_remote_url, branch)
-    readme.gsub!(/src=(\'|\")[\s\S]*?(\'|\")/) { |image_source|
-      if !image_source.match?('amazonaws.com') && !image_source.match?('https://') && !image_source.match?('http://') && !image_source.match?('youtube')
-        image_source.gsub!(/(\'|\")/, "")
-        image_source.gsub!(/src=/, '')
-        image_source.strip!
-        'src="' + raw_remote_url + '/' + branch + '/' + image_source + '"'
+    readme.gsub(/src=(\'|\")[\s\S]*?(\'|\")/) { |image_source|
+      
+      if !image_source.match?('amazonaws.com') && !image_source.match?('https://') && !image_source.match?('http://') && !image_source.match?('youtube') && !image_source.match(/src=(\'|\")(?=<%)/)
+        image_source = image_source.gsub(/(\'|\")/, "")
+        image_source = image_source.gsub(/src=/, '')
+        image_source = image_source.strip
+
+        begin
+          'src="' + raw_remote_url + '/' + branch + '/' + image_source + '"'
+        rescue
+          puts "Error adjust HTML images - check images in Canvas"
+        end
       else
         image_source
       end
@@ -162,12 +205,12 @@ class RepositoryConverter
   def self.add_fis_links(options, html)
     repo_info = self.get_repo_info(options[:filepath])
     html = html.sub(/<div id="git-data-element.*<header class="fis-header.*<\/header>/,'') # remove existing fis header
-    header = self.create_github_link_header(repo_info[:repo_path], options[:forkable])
-    data_element = self.create_data_element(repo_info[:repo_org], repo_info[:repo_name])
+    header = self.create_github_link_header(repo_info[:repo_path], options)
+    data_element = self.create_data_element(repo_info[:repo_org], repo_info[:repo_name], options[:aaq], options[:prework])
     data_element + header + html
   end
 
-  def self.create_github_link_header(repo_path, forkable)
+  def self.create_github_link_header(repo_path, options)
     # add link to associated repository
     github_repo_link = "<a class='fis-git-link' href='#{repo_path}' target='_blank' rel='noopener'><img id='repo-img' title='Open GitHub Repo' alt='GitHub Repo' /></a>"
     
@@ -175,16 +218,19 @@ class RepositoryConverter
     github_issue_link = "<a class='fis-git-link' href='#{repo_path}/issues/new' target='_blank' rel='noopener'><img id='issue-img' title='Create New Issue' alt='Create New Issue' /></a>"
     
     # add link to fork (forking handled by separate Flatiron server, generation of link handled via custom Canvas JS theme file)
-    if (forkable)
-      github_fork_link = "<a class='fis-fork-link' id='fork-link' href='#' target='_blank' rel='noopener'><img id='fork-img' title='Fork This Assignment' alt='Fork This Assignment' /></a>"
+
+    if (options[:forkable])
+      github_fork_link = "<a class='fis-fork-link' id='fork-link' href='#{repo_path}/fork' target='_blank' rel='noopener'><img id='fork-img' title='Fork This Assignment' alt='Fork This Assignment' /></a>"
       "<header class='fis-header' style='visibility: hidden;'>#{github_fork_link}#{github_repo_link}#{github_issue_link}</header>"
+    elsif options[:git_links]
+      "<header class='fis-header'>#{github_repo_link}#{github_issue_link}</header>"
     else
       "<header class='fis-header' style='visibility: hidden;'>#{github_repo_link}#{github_issue_link}</header>"
     end
   end
 
-  def self.create_data_element(repo_org, repo_name)
-    "<div id='git-data-element' data-org='#{repo_org}' data-repo='#{repo_name}'></div>"
+  def self.create_data_element(repo_org, repo_name, aaq, prework)
+    "<div id='git-data-element' #{prework ? "data-prework='true'" : ""} #{aaq ? "data-aaq='enabled'" : ""} data-org='#{repo_org}' data-repo='#{repo_name}'></div>"
   end
 
   
