@@ -140,7 +140,7 @@ OptionParser.new do |opts|
           end
   opts.on("-q COURSE", "--query COURSE", 
           "Displays a course's lessons and assignments") do |course|
-            options[:query] = course
+            options[:course_id] = course
           end
   opts.on("--map YAML_FILE", 
           "REQUIRES -f or --file Associates canvas lessons with repositories. Use query to create required YAML file") do |file|
