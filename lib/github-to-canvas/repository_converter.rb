@@ -1,5 +1,4 @@
 require 'redcarpet'
-require 'byebug'
 class CustomRender < Redcarpet::Render::HTML
   def block_code(code, lang)
     "<pre>" \
@@ -51,7 +50,6 @@ class RepositoryConverter
   end
 
   def self.adjust_converted_html(options, html)
-    
     if options[:remove_header_and_footer]
       html = self.remove_header_and_footer(html)
     end
@@ -63,19 +61,16 @@ class RepositoryConverter
     if options[:contains_html]
       html = self.fix_escaped_inline_html_code(html)
     end
-
     html
   end
 
   def self.fix_escaped_inline_html_code(html)
     
-
     html
   end
 
-
   def self.escape_existing_html(markdown)
-    markdown = markdown.gsub(/```(\n|.)*```/) { |code|
+    markdown = markdown.gsub(/```(\n|.)*?```/) { |code|
       # all code blocks
       code = code.gsub("<", "&lt;")
       code = code.gsub(">", "&gt;")
@@ -85,7 +80,7 @@ class RepositoryConverter
 
   def self.remove_header_and_footer(html)
     new_html = self.remove_html_header(html)
-    new_html = self.remove_footer(new_html)
+    # new_html = self.remove_footer(new_html)
     new_html
   end
 
@@ -102,7 +97,7 @@ class RepositoryConverter
   end
 
   def self.remove_html_header(html)
-    html.gsub(/<h1>.*<\/h1>/,"")
+    html.gsub(/<h1>.*?<\/h1>/,"")
   end
 
   def self.fix_local_html_links(options, html, filepath)
