@@ -10,8 +10,8 @@ Gem::Specification.new do |s|
   s.require_paths = ['lib']
   s.homepage = 'https://github.com/learn-co-curriculum/github-to-canvas'
   s.executables << 'github-to-canvas'
-  s.add_runtime_dependency 'faraday', '~> 0.15'
   s.add_runtime_dependency 'redcarpet', '~> 3.5'
   s.add_runtime_dependency 'rest-client', '~> 2.1'
+  s.add_runtime_dependency 'rouge', '~> 3.26'
   s.add_runtime_dependency 'json', '~> 2.3'
 end

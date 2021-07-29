@@ -16,3 +16,11 @@
   :course_id: 154
   :canvas_url: https://learning.flatironschool.com/courses/154/assignments/10882
   :type: assignment
+- :id: 92951
+  :course_id: 4091
+  :canvas_url: https://learning.flatironschool.com/courses/4091/pages/github-to-canvas-gem
+  :type: page
+- :id: 92951
+  :course_id: 4091
+  :canvas_url: https://learning.flatironschool.com/courses/4091/pages/example-title
+  :type: page
