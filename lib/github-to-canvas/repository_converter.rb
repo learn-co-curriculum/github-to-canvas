@@ -1,7 +1,6 @@
 require 'redcarpet'
 require 'rouge'
 require 'rouge/plugins/redcarpet'
-require 'pry'
 
 class CustomRender < Redcarpet::Render::HTML
   include Rouge::Plugins::Redcarpet
@@ -29,7 +28,13 @@ class RepositoryConverter
   end
 
   def self.convert_to_html(markdown)
-    redcarpet = Redcarpet::Markdown.new(CustomRender, tables: true, autolink: true, fenced_code_blocks: true, disable_indented_code_blocks: true)
+    options = {
+      tables: true,
+      autolink: true,
+      fenced_code_blocks: true,
+      no_intra_emphasis: true
+    }
+    redcarpet = Redcarpet::Markdown.new(CustomRender, options)
     html = redcarpet.render(markdown)
     puts "Markdown converted to HTML"
     html
@@ -44,14 +49,6 @@ class RepositoryConverter
       html = self.add_fis_links(options, html)
     end
 
-    if options[:contains_html]
-      html = self.fix_escaped_inline_html_code(html)
-    end
-    html
-  end
-
-  def self.fix_escaped_inline_html_code(html)
-    
     html
   end
 

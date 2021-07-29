@@ -1,6 +1,8 @@
+require_relative "lib/github-to-canvas/version"
+
 Gem::Specification.new do |s|
   s.name = 'github-to-canvas'
-  s.version = '0.1.16'
+  s.version = GithubToCanvas::VERSION
   s.date = '2020-05-12'
   s.authors = ['maxwellbenton']
   s.email = 'maxwell@flatironschool.com'
