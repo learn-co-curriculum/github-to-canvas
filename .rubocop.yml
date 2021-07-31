@@ -1,0 +1,8 @@
+require:
+  - rubocop-rspec
+
+Metrics/BlockLength:
+  Enabled: false
+
+RSpec/ExampleLength:
+  Enabled: false
