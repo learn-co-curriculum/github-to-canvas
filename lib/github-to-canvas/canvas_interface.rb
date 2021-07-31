@@ -217,12 +217,9 @@ class CanvasInterface
             response = RestClient.get(url, self.headers)
             lessons = JSON.parse(response.body)
             lessons = lessons.map do |lesson|
-              if lesson["type"] == "ExternalUrl"
-                next
-              end
               lesson = lesson.slice("id","title","name","indent","type","html_url","page_url","url","completion_requirement", "published")
               lesson["repository"] = ""
-              lesson['id'] = lesson['url'].gsub(/^(.*[\\\/])/,'')
+              lesson['id'] = lesson['url']&.gsub(/^(.*[\\\/])/,'')
               lesson
             end
             if ([200, 201].include? response.code) && (!lessons.empty?)
@@ -247,6 +244,7 @@ class CanvasInterface
     course_info = YAML.load(File.read("#{Dir.pwd}/#{options[:file_to_convert]}"))
     course_info[:modules] = course_info[:modules].map do |mod|
       mod[:lessons] = mod[:lessons].map do |lesson|
+        next lesson unless lesson.key?("url")
 
         url = lesson["url"]
         response = RestClient.get(url, headers={
