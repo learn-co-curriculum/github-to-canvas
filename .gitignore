@@ -19,3 +19,5 @@ jspm_packages
 !/log/.keep
 /tmp
 *.gem
+
+Gemfile.lock
