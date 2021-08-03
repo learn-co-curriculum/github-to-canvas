@@ -51,7 +51,7 @@ class RepositoryConverter
 
     html
   end
-
+  
   def self.remove_header_and_footer(html)
     new_html = self.remove_html_header(html)
     # new_html = self.remove_footer(new_html)
