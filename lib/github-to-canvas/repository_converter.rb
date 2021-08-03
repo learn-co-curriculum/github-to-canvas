@@ -1,14 +1,9 @@
 require 'redcarpet'
-class CustomRender < Redcarpet::Render::HTML
-  def block_code(code, lang)
-    "<pre>" \
-      "<code>#{multi_line(code)}</code>" \
-    "</pre>"
-  end
+require 'rouge'
+require 'rouge/plugins/redcarpet'
 
-  def multi_line(code)
-    code.gsub(/\n(?=[^.])/, "<br />")
-  end
+class CustomRender < Redcarpet::Render::HTML
+  include Rouge::Plugins::Redcarpet
 end
 
 class RepositoryConverter
@@ -16,7 +11,6 @@ class RepositoryConverter
     # GithubInterface.get_updated_repo(options[:filepath], options[:branch])
     markdown = RepositoryInterface.read_local_file(options[:filepath], options[:file_to_convert])
     raw_remote_url = self.set_raw_image_remote_url(options[:filepath])
-    markdown = self.escape_existing_html(markdown) if options[:contains_html]
     markdown = self.fix_local_images(options, markdown, raw_remote_url)
     html = self.convert_to_html(markdown)
     # self.fix_local_html_links(options, html, options[:filepath])
@@ -25,14 +19,6 @@ class RepositoryConverter
   def self.remote_file_conversion(options)
     markdown = GithubInterface.read_remote(options[:filepath])
     raw_remote_url = self.set_raw_image_remote_url(options[:filepath])
-    if options[:contains_html]
-      begin
-        markdown = self.escape_existing_html(markdown)
-      rescue
-        puts "Error reading remote markdown"
-        abort
-      end
-    end
     if (!options[:branch])
       options[:branch] = 'master'
     end
@@ -42,11 +28,16 @@ class RepositoryConverter
   end
 
   def self.convert_to_html(markdown)
-    renderer = CustomRender.new(escape_html: true, prettify: true, hard_wrap: true)
-    redcarpet = Redcarpet::Markdown.new(CustomRender, options={tables: true, autolink: true, fenced_code_blocks: true, disable_indented_code_blocks: true})
+    options = {
+      tables: true,
+      autolink: true,
+      fenced_code_blocks: true,
+      no_intra_emphasis: true
+    }
+    redcarpet = Redcarpet::Markdown.new(CustomRender, options)
     html = redcarpet.render(markdown)
     puts "Markdown converted to HTML"
-    self.remove_line_breaks(html)
+    html
   end
 
   def self.adjust_converted_html(options, html)
@@ -58,26 +49,9 @@ class RepositoryConverter
       html = self.add_fis_links(options, html)
     end
 
-    if options[:contains_html]
-      html = self.fix_escaped_inline_html_code(html)
-    end
     html
   end
-
-  def self.fix_escaped_inline_html_code(html)
-    
-    html
-  end
-
-  def self.escape_existing_html(markdown)
-    markdown = markdown.gsub(/```(\n|.)*?```/) { |code|
-      # all code blocks
-      code = code.gsub("<", "&lt;")
-      code = code.gsub(">", "&gt;")
-    }
-    markdown
-  end
-
+  
   def self.remove_header_and_footer(html)
     new_html = self.remove_html_header(html)
     # new_html = self.remove_footer(new_html)

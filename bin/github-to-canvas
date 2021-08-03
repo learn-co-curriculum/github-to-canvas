@@ -4,7 +4,7 @@ lib_dir = File.expand_path(File.join(File.dirname(__FILE__), '../lib'))
 $LOAD_PATH.unshift(lib_dir) unless $LOAD_PATH.include?(lib_dir)
 
 require 'optparse'
-require 'github-to-canvas'
+require_relative '../lib/github-to-canvas'
 
 options = {}
 OptionParser.new do |opts|
@@ -193,8 +193,8 @@ OptionParser.new do |opts|
             options[:clone_from_yaml] = file
           end
   opts.on("--contains-html", 
-          "Escapes all HTML included in source markdown by replacing '<' and '>' with HTML charset values") do |html|
-            options[:contains_html] = html
+          "DEPRECATED: HTML in code blocks handled by Rouge gem.") do |html|
+            puts "--contains-html flag is DEPRECATED: HTML in code blocks handled by Rouge gem."
           end
   opts.on("--canvas-to-canvas COURSE",
           "Copies an existing Canvas lesson into another Canvas lesson") do |canvas_to_canvas|
@@ -240,8 +240,7 @@ if options[:read_from_github]
                     forkable: !!options[:forkable],
                     fis_links: !!options[:fis],
                     aaq: !!options[:aaq],
-                    prework: !!options[:prework],
-                    contains_html: options[:contains_html])
+                    prework: !!options[:prework])
   abort
 end
 
@@ -256,8 +255,7 @@ if options[:create_from_github]
                       forkable: !!options[:forkable],
                       fis_links: !!options[:fis],
                       aaq: !!options[:aaq],
-                      prework: !!options[:prework],
-                      contains_html: options[:contains_html])
+                      prework: !!options[:prework])
   else
     puts 'Canvas course ID and lesson type required. Example: github-to-canvas --create-from-github URL --course ID --type TYPE'
   end
@@ -276,8 +274,7 @@ if options[:align_from_github]
                       forkable: !!options[:forkable],
                       fis_links: !!options[:fis],
                       aaq: !!options[:aaq],
-                      prework: !!options[:prework],
-                      contains_html: options[:contains_html])
+                      prework: !!options[:prework])
   else
     puts 'Canvas course ID, lesson ID, and type required. Example: github-to-canvas --create-from-github URL --course COURSE_ID --id LESSON_ID --type TYPE'
   end
@@ -311,7 +308,6 @@ if options[:csv_build]
                     aaq: !!options[:aaq],
                     forkable: !!options[:forkable],
                     branch: options[:branch],
-                    contains_html: options[:contains_html],
                     git_links: !!options[:git_links])
   abort
 end
@@ -325,7 +321,6 @@ if options[:csv_align]
                     aaq: !!options[:aaq],
                     forkable: !!options[:forkable],
                     branch: options[:branch],
-                    contains_html: options[:contains_html],
                     git_links: !!options[:git_links])
   abort
 end
@@ -338,7 +333,6 @@ if options[:build_course]
                     aaq: !!options[:aaq],
                     prework: !!options[:prework],
                     forkable: !!options[:forkable],
-                    contains_html: options[:contains_html],
                     git_links: !!options[:git_links])
   abort
 end
@@ -353,7 +347,6 @@ if options[:add_to_course]
                       forkable: !!options[:forkable],
                       aaq: !!options[:aaq],
                       prework: !!options[:prework],
-                      contains_html: options[:contains_html],
                       git_links: !!options[:git_links])
   else
     puts '--course required'
@@ -369,7 +362,6 @@ if options[:update_course_lessons]
                     forkable: !!options[:forkable],
                     aaq: !!options[:aaq],
                     prework: !!options[:prework],
-                    contains_html: options[:contains_html],
                     git_links: !!options[:git_links])
   abort
 end
@@ -435,8 +427,7 @@ if options[:create_lesson]
                     only_update_content: !!options[:only_content],
                     forkable: !!options[:forkable],
                     aaq: !!options[:aaq],
-                    prework: !!options[:prework],
-                    contains_html: options[:contains_html])
+                    prework: !!options[:prework])
 end
 
 if options[:align]
@@ -455,6 +446,5 @@ if options[:align]
                     only_update_content: !!options[:only_content],
                     forkable: !!options[:forkable],
                     aaq: !!options[:aaq],
-                    prework: !!options[:prework],
-                    contains_html: options[:contains_html])
+                    prework: !!options[:prework])
 end

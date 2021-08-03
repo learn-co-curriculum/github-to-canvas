@@ -201,9 +201,6 @@ class GithubToCanvas
         options[:name] = lesson[1]
         options[:type] = lesson[3]
         options[:branch] = "master" if !options[:branch]
-        if !options[:contains_html]
-          options[:contains_html] = (lesson[4] == "yes" || lesson[4] == "Yes") ? true : false
-        end
         
 
         html = RepositoryConverter.remote_file_conversion(options)
@@ -243,9 +240,6 @@ class GithubToCanvas
         options[:id] = lesson[5]
         options[:course_id] = lesson[6]
         options[:branch] = "master" if !options[:branch]
-        if !options[:contains_html]
-          options[:contains_html] = (lesson[4] == "yes" || lesson[4] == "Yes") ? true : false
-        end
         
 
         html = RepositoryConverter.remote_file_conversion(options)
