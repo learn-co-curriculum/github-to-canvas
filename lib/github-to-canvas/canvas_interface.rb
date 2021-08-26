@@ -55,7 +55,7 @@ class CanvasInterface
         'module_item[title]' => lesson_info["title"],
         'module_item[type]' => lesson_info["type"].capitalize,
         'module_item[indent]' => 0,
-        'module_item[page_url]' => lesson_info["id"],
+        'module_item[page_url]' => lesson_info["page_url"],
         'module_item[completion_requirement][type]' => 'must_view'
       }
     elsif lesson_info["type"] == "Quiz"

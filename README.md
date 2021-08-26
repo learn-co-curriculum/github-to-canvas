@@ -249,9 +249,7 @@ repositories. In addition, all lessons must have a type (`Page` or
 `Assignment`), a repository, and a title. Other lesson options are currently
 ignored.
 
-Here's an example of what the YAML file should look like. Note that for Pages
-the id needs to be present and match the title, based on how Canvas creates
-URL slugs for pages.
+Here's an example of what the YAML file should look like.
 
 ```yaml
 ---
@@ -263,8 +261,7 @@ URL slugs for pages.
       - title: Lesson 1
         type: Assignment
         repository: https://github.com/learn-co-curriculum/react-hooks-component-props-mini-project
-      - id: lesson-2
-        title: Lesson 2
+      - title: Lesson 2
         type: Page
         repository: https://github.com/learn-co-curriculum/phase-0-pac-1-js-variables
 ```
