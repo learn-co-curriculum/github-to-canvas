@@ -85,7 +85,7 @@ class GithubToCanvas
           html = RepositoryConverter.remote_file_conversion(options)
           # Add each lesson to it's module
           html = RepositoryConverter.adjust_converted_html(options, html)
-          created_lesson_info = CanvasInterface.create_lesson(options, lesson["title"], html)
+          created_lesson_info = CanvasInterface.create_lesson(options, lesson["title"], html) 
           lesson = lesson.merge(created_lesson_info)
           
           lesson["page_url"] = lesson["url"] if !lesson["page_url"]
