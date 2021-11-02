@@ -132,6 +132,27 @@ OptionParser.new do |opts|
           "Only generate the HTML header") do
             options[:header_only] = true
           end
+  opts.on("--grading-type TYPE", 
+          "Sets the 'grading_type' for an assignment. Default: pass_fail. Valid options: pass_fail, percent, letter_grade, gpa_scale, points, not_graded") do |grading_type|
+            valid_types = %w[pass_fail percent letter_grade gpa_scale points not_graded]
+            unless valid_types.include? grading_type
+              raise "Invalid grading type: #{grading_type}"
+            end
+            options[:grading_type] = grading_type
+          end
+  opts.on("--submission-type TYPE", 
+          "Sets the 'submission_type' for an assignment. Default: online_url. Valid options: online_quiz, none, on_paper, discussion_topic, external_tool, online_upload, online_text_entry, online_url, media_recording, student_annotation") do |submission_type|
+            valid_types = %w[online_quiz none on_paper discussion_topic external_tool online_upload online_text_entry online_url media_recording student_annotation]
+            unless valid_types.include? submission_type
+              raise "Invalid grading type: #{submission_type}"
+            end
+            options[:submission_type] = submission_type
+          end
+  opts.on("--points-possible POINTS",
+          Integer,
+          "Sets the 'points_possible' for an assignment. Default: 1.") do |points_possible|
+            options[:points_possible] = points_possible
+          end
   opts.on("--course COURSE",
           "For align functionality only - updates the HTML content of a lesson using the provided course ID. Use with --id.") do |course_id|
             options[:course_id] = course_id
@@ -256,6 +277,9 @@ if options[:create_from_github]
                       course_id: options[:course_id], 
                       type: options[:type],
                       name: options[:name],
+                      grading_type: options.fetch(:grading_type, 'pass_fail'),
+                      submission_type: options.fetch(:submission_type, 'online_url'),
+                      points_possible: options.fetch(:points_possible, 1),
                       remove_header_and_footer: !!options[:remove_header_and_footer],
                       forkable: !!options[:forkable],
                       fis_links: !!options[:fis],
@@ -276,6 +300,9 @@ if options[:align_from_github]
                       type: options[:type], 
                       id: options[:id],
                       name: options[:name],
+                      grading_type: options.fetch(:grading_type, 'pass_fail'),
+                      submission_type: options.fetch(:submission_type, 'online_url'),
+                      points_possible: options.fetch(:points_possible, 1),
                       remove_header_and_footer: !!options[:remove_header_and_footer],
                       forkable: !!options[:forkable],
                       fis_links: !!options[:fis],
@@ -432,6 +459,9 @@ if options[:create_lesson]
                     branch: options[:branch], 
                     name: options[:name], 
                     type: options[:type], 
+                    grading_type: options.fetch(:grading_type, 'pass_fail'),
+                    submission_type: options.fetch(:submission_type, 'online_url'),
+                    points_possible: options.fetch(:points_possible, 1),
                     save_to_github: !!options[:save_to_github], 
                     fis_links: !!options[:fis], 
                     git_links: !!options[:git_links],
@@ -452,6 +482,9 @@ if options[:align]
                     branch: options[:branch],
                     name: options[:name],
                     type: options[:type],
+                    grading_type: options.fetch(:grading_type, 'pass_fail'),
+                    submission_type: options.fetch(:submission_type, 'online_url'),
+                    points_possible: options.fetch(:points_possible, 1),
                     save_to_github: !!options[:save_to_github], 
                     fis_links: !!options[:fis],
                     git_links: !!options[:git_links], 

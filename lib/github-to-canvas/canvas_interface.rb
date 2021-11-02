@@ -117,7 +117,9 @@ class CanvasInterface
         options[:id] = lesson[:id]
         options[:course_id] = lesson[:course_id]
         options[:type] = lesson[:type]
-        
+        options[:submission_type] = lesson.fetch(:submission_type, 'online_url')
+        options[:grading_type] = lesson.fetch(:grading_type, 'pass_fail')
+        options[:points_possible] = lesson.fetch(:points_possible, 1)
       }
       RepositoryInterface.local_repo_post_submission(options, response)
       puts "Canvas lesson updated. Lesson available at #{response['html_url']}"
@@ -389,9 +391,9 @@ class CanvasInterface
         payload = {
           'assignment[name]' => name,
           'assignment[description]' => html,
-          'assignment[submission_types][]' => "online_url",
-          'assignment[grading_type]' => 'pass_fail',
-          'assignment[points_possible]' => 1
+          'assignment[submission_types][]' => options.fetch(:submission_type, 'online_url'),
+          'assignment[grading_type]' => options.fetch(:grading_type, 'pass_fail'),
+          'assignment[points_possible]' => options.fetch(:points_possible, 1)
         }
       elsif options[:type] == "discussion"
         payload = {
