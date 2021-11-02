@@ -153,6 +153,10 @@ OptionParser.new do |opts|
           "Sets the 'points_possible' for an assignment. Default: 1.") do |points_possible|
             options[:points_possible] = points_possible
           end
+  opts.on("--illumidesk",
+          "Configure assignment to use IllumiDesk for submission") do
+            options[:illumidesk] = true
+          end
   opts.on("--course COURSE",
           "For align functionality only - updates the HTML content of a lesson using the provided course ID. Use with --id.") do |course_id|
             options[:course_id] = course_id
@@ -277,6 +281,7 @@ if options[:create_from_github]
                       course_id: options[:course_id], 
                       type: options[:type],
                       name: options[:name],
+                      illumidesk: !!options[:illumidesk],
                       grading_type: options.fetch(:grading_type, 'pass_fail'),
                       submission_type: options.fetch(:submission_type, 'online_url'),
                       points_possible: options.fetch(:points_possible, 1),
@@ -300,6 +305,7 @@ if options[:align_from_github]
                       type: options[:type], 
                       id: options[:id],
                       name: options[:name],
+                      illumidesk: !!options[:illumidesk],
                       grading_type: options.fetch(:grading_type, 'pass_fail'),
                       submission_type: options.fetch(:submission_type, 'online_url'),
                       points_possible: options.fetch(:points_possible, 1),
@@ -459,6 +465,7 @@ if options[:create_lesson]
                     branch: options[:branch], 
                     name: options[:name], 
                     type: options[:type], 
+                    illumidesk: !!options[:illumidesk],
                     grading_type: options.fetch(:grading_type, 'pass_fail'),
                     submission_type: options.fetch(:submission_type, 'online_url'),
                     points_possible: options.fetch(:points_possible, 1),
@@ -482,6 +489,7 @@ if options[:align]
                     branch: options[:branch],
                     name: options[:name],
                     type: options[:type],
+                    illumidesk: !!options[:illumidesk],
                     grading_type: options.fetch(:grading_type, 'pass_fail'),
                     submission_type: options.fetch(:submission_type, 'online_url'),
                     points_possible: options.fetch(:points_possible, 1),
