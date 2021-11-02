@@ -128,6 +128,14 @@ OptionParser.new do |opts|
           "Removes top lesson header and any Learn.co specific footer links before converting to HTML") do |r|
             options[:remove_header_and_footer] = true
           end
+  opts.on("-d", "--ds-assignment",
+          "Configure the following options: --header-only --illumidesk --grading-type points --submission-type external_tool --points-possible 0") do
+            options[:header_only] = true
+            options[:illumidesk] = true
+            options[:grading_type] = 'points'
+            options[:submission_type] = 'external_tool'
+            options[:points_possible] = 0
+          end
   opts.on("--header-only",
           "Only generate the HTML header") do
             options[:header_only] = true
@@ -144,7 +152,7 @@ OptionParser.new do |opts|
           "Sets the 'submission_type' for an assignment. Default: online_url. Valid options: online_quiz, none, on_paper, discussion_topic, external_tool, online_upload, online_text_entry, online_url, media_recording, student_annotation") do |submission_type|
             valid_types = %w[online_quiz none on_paper discussion_topic external_tool online_upload online_text_entry online_url media_recording student_annotation]
             unless valid_types.include? submission_type
-              raise "Invalid grading type: #{submission_type}"
+              raise "Invalid submission type: #{submission_type}"
             end
             options[:submission_type] = submission_type
           end
