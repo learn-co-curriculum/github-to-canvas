@@ -97,8 +97,6 @@ class CanvasInterface
         lesson_info = lesson_info[0] if lesson_info.kind_of?(Array)
         url = url.sub(/[^\/]+$/, lesson_info["page_id"].to_s)
       end
-      require 'pry'
-      binding.pry
       response = RestClient.put(url, payload, headers)
     rescue Exception => e
       puts "Something went wrong while pushing lesson #{options[:id]} to course #{options[:course_id]}"
