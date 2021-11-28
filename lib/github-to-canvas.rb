@@ -133,7 +133,7 @@ class GithubToCanvas
           # split relative path from repository tag in YAML into path and file to match downstream processing expectations
           options[:filepath] = File.dirname(lesson["repository"])
           options[:file_to_convert] = File.basename(lesson["repository"])
-          html = RepositoryConverter.remote_file_conversion(options)
+          html = RepositoryConverter.local_file_conversion(options)
           # Add each lesson to it's module
           html = RepositoryConverter.adjust_converted_html(options, html)
           created_lesson_info = CanvasInterface.create_lesson(options, lesson["title"], html)
