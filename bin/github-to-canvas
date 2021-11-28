@@ -59,7 +59,7 @@ OptionParser.new do |opts|
     Create and Update Canvas Courses From YAML:
 
     github-to-canvas --build-course YAML_FILE                                                     -> Uses the provided YAML file to create a course, add modules and populate them with lessons using remote GitHub repositories
-    github-to-canvas --add-to-course YAML_FILE --course                                           -> Uses a YAML file to a modules and lessons to an existing course.
+    github-to-canvas --add-to-course YAML_FILE --course                                           -> Uses a YAML file to add modules and lessons to an existing course from remote (public) GitHub repository.
     github-to-canvas --update-course YAML_FILE                                                    -> Uses a YAML file to update lessons using their associated GitHub repositories (ignores module/course structure in YAML file)
 
   EOBANNER
@@ -181,7 +181,7 @@ OptionParser.new do |opts|
             options[:build_course] = file
           end
   opts.on("--add-to-course YAML_FILE", 
-          "Creates Canvas course using provided YAML file") do |file|
+          "Creates Canvas course using provided YAML file with URLs to remote public GitHub repository") do |file|
             options[:add_to_course] = file
           end
   opts.on("--update-course-lessons YAML_FILE", 
