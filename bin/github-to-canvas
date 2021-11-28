@@ -60,6 +60,7 @@ OptionParser.new do |opts|
 
     github-to-canvas --build-course YAML_FILE                                                     -> Uses the provided YAML file to create a course, add modules and populate them with lessons using remote GitHub repositories
     github-to-canvas --add-to-course YAML_FILE --course                                           -> Uses a YAML file to add modules and lessons to an existing course from remote (public) GitHub repository.
+    github-to-canvas --add-to-course-local YAML_FILE --course                                     -> Uses a YAML file to add modules and lessons to an existing course from local GitHub repository. Paths should be relative to the YAML file location.
     github-to-canvas --update-course YAML_FILE                                                    -> Uses a YAML file to update lessons using their associated GitHub repositories (ignores module/course structure in YAML file)
 
   EOBANNER
@@ -183,6 +184,10 @@ OptionParser.new do |opts|
   opts.on("--add-to-course YAML_FILE", 
           "Creates Canvas course using provided YAML file with URLs to remote public GitHub repository") do |file|
             options[:add_to_course] = file
+          end
+  opts.on("--add-to-course-local YAML_FILE", 
+          "Creates Canvas course using provided YAML file with relative paths to local GitHub repository") do |file|
+            options[:add_to_course_local] = file
           end
   opts.on("--update-course-lessons YAML_FILE", 
           "Updates all lessons in a course using remote repos in provided YAML file") do |file|
@@ -342,6 +347,23 @@ if options[:add_to_course]
     GithubToCanvas.new(mode: 'add_to_course', 
                       course_id: options[:course_id], 
                       file_to_convert: options[:add_to_course],
+                      fis_links: !!options[:fis], 
+                      remove_header_and_footer: !!options[:remove_header_and_footer],
+                      forkable: !!options[:forkable],
+                      aaq: !!options[:aaq],
+                      prework: !!options[:prework],
+                      git_links: !!options[:git_links])
+  else
+    puts '--course required'
+  end
+  abort
+end
+
+if options[:add_to_course_local]
+  if options[:course_id]
+    GithubToCanvas.new(mode: 'add_to_course_local', 
+                      course_id: options[:course_id], 
+                      yaml_file_to_convert: options[:add_to_course_local], # distinguish from file_to_convert which will come from repository values in YAML
                       fis_links: !!options[:fis], 
                       remove_header_and_footer: !!options[:remove_header_and_footer],
                       forkable: !!options[:forkable],
