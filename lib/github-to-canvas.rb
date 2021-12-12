@@ -170,6 +170,33 @@ class GithubToCanvas
           sleep(1)
         }
       }
+    when 'update_course_lessons_local'
+      course_yaml = YAML.load(File.read(options[:yaml_file_to_convert]))
+      options[:course_id] = course_yaml[:id]
+      course_yaml[:modules].each { |module_info|
+        puts "Updating #{module_info[:name]}"
+        module_info[:lessons].each { |lesson|
+          if lesson["repository"] == ""
+            puts "No repository found for #{lesson['title']}"
+            next
+          end
+          options[:id] = lesson['id']
+          options[:type] = lesson["type"].downcase
+          options[:filepath] = File.dirname(lesson["repository"])
+          options[:file_to_convert] = File.basename(lesson["repository"])
+          options[:branch] = 'master'
+          html = RepositoryConverter.local_file_conversion(options)
+          
+          html = RepositoryConverter.adjust_converted_html(options, html)
+          created_lesson_info = CanvasInterface.update_existing_lesson(options, lesson["title"], html)
+          lesson = lesson.merge(created_lesson_info)
+          
+          
+          puts "Lesson updated - #{lesson['title']}"
+          sleep(1)
+        }
+      }
+
     when 'clone_course'
       course_yaml = YAML.load(File.read(options[:file_to_convert]))
       new_dir = "#{course_yaml[:name].downcase.gsub(' ','-')}"
