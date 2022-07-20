@@ -287,7 +287,7 @@ class CanvasInterface
       end
       mod
     end
-    puts course_info.to_yaml if !options[:urls_only]
+    puts course_info.to_yaml if !(options[:urls_only] || options[:csv])
   end
 
   def self.csv(file_to_convert)

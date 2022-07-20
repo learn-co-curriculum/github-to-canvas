@@ -23,7 +23,7 @@ class GithubToCanvas
     when 'map'
       CanvasInterface.map_course_info(options)
     when 'csv'
-      CanvasInterface.csv(options[:file_to_convert]) # not working properly
+      CanvasInterface.csv(options[:file_to_convert])
     when 'canvas_read'
       puts CanvasInterface.read_lesson(options[:filepath])
     when 'canvas_copy'
