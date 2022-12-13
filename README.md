@@ -138,7 +138,8 @@ github-to-canvas -a -lr --forkable
 ```
 
 If you don't have or want to use the `.canvas` file, you can also specify the
-course ID and lesson ID:
+course ID and lesson ID. Running this command will add the specified course to
+the .canvas file in the local repo:
 
 ```sh
 github-to-canvas -a --course <CANVAS_COURSE_ID> --id <CANVAS_LESSON_ID> -lr --forkable
