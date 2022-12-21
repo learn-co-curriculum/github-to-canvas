@@ -83,7 +83,7 @@ The GitHub to Canvas gem can be used for the following:
 Navigate into a repository folder cloned down to your local machine and run:
 
 ```sh
-github-to-canvas -c <CANVAS_COURSE_ID> -lr --forkable
+github-to-canvas -c <CANVAS_COURSE_ID> -lr --forkable --solution
 ```
 
 The command above will create a Canvas lesson in the course provided. It will
@@ -91,11 +91,11 @@ also remove the repositories top-level header and remove any old Flatiron
 branded footers. It will also add an HTML header for Canvas that includes links
 back to the repository.
 
-If the lesson type is an assignment, a Fork button will also be added to the
+If the lesson type is an assignment, a Fork button and a Solution will also be added to the
 HTML header. Because the command didn't specify, the type of lesson is determined
 based on the local repo structure - if it has sub-folders, the lesson will become
 an assignment; if there are no sub-folders, the lesson will become a page. If the
-lesson type is a page, the `--forkable` option will be ignored.
+lesson type is a page, the `--forkable --solution` options will be ignored.
 
 Creating a lesson this way will also produce a `.canvas` file. This file
 contains info about the Canvas lesson that was created.
@@ -105,7 +105,7 @@ contains info about the Canvas lesson that was created.
 To create from a remote repo, run the following command:
 
 ```sh
-github-to-canvas --create-from-github <URL> --course <CANVAS_COURSE_ID> --type <TYPE> -lr --forkable
+github-to-canvas --create-from-github <URL> --course <CANVAS_COURSE_ID> --type <TYPE> -lr --forkable --solution
 ```
 
 This command will read a GitHub markdown based on the provided URL and create a
@@ -411,6 +411,8 @@ overwritten if the lesson is updated using the gem.
 - `--forkable`: Adds a **Fork** button to the Flatiron School HTML header. For
   use with custom Canvas JS to enable Canvas assignment forking workflow for
   Flatiron School students.
+- `--solution`: Adds a **Solution** button to the Flatiron School HTML header. For
+  use with custom Canvas JS to provide a link to the solution branch.
 - `--remove-header-and-footer`, `-r`: Removes top lesson header and any Flatiron
   School specific footer links before converting to HTML. Removing top lesson
   header prevents duplicate titles while viewing in Canvas.

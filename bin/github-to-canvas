@@ -42,7 +42,8 @@ OptionParser.new do |opts|
     github-to-canvas --create-lesson 154 --name "Fetch Lab" --branch solution                      -> Creates a lesson in course 154 with the provided name, uses the repository's solution branch and derives the type from the local repo
     github-to-canvas --align                                                                       -> Patches existing lessons in Canvas based on the .canvas file  
     github-to-canvas --align --fis-links                                                           -> Patches existing lessons in Canvas based on the .canvas file, adds additional Flatiron School specific HTML and meta-data
-    github-to-canvas --align --remove-header-and-footer                                            -> Patches existing lessons in Canvas based on the .canvas file, removes top lesson header before converting to HTML    
+    github-to-canvas --align --remove-header-and-footer                                            -> Patches existing lessons in Canvas based on the .canvas file, removes top lesson header before converting to HTML
+    github-to-canvas --align --fis-links --forkable --solution                                     -> Patches existing lessons in Canvas based on the .canvas file, adds forkable button and solution button to Flatiron School specific HTML
 
     Get Info on a Canvas Course, Lesson or GitHub Repo:
     
@@ -123,6 +124,10 @@ OptionParser.new do |opts|
   opts.on("--forkable",
           "Used with --fis-links, adds fork button to HTML header injected into Canvas lesson") do |remote|
             options[:forkable] = true
+          end
+  opts.on("--solution",
+          "Used with --fis-links, adds solution button to HTML header injected into Canvas lesson") do |remote|
+            options[:solution] = true
           end
   opts.on("-r", "--remove-header-and-footer",
           "Removes top lesson header and any Learn.co specific footer links before converting to HTML") do |r|
@@ -238,6 +243,7 @@ if options[:read_from_github]
                     filepath: options[:read_from_github],
                     remove_header_and_footer: !!options[:remove_header_and_footer],
                     forkable: !!options[:forkable],
+                    solution: !!options[:solution],
                     fis_links: !!options[:fis],
                     aaq: !!options[:aaq],
                     prework: !!options[:prework])
@@ -253,6 +259,7 @@ if options[:create_from_github]
                       name: options[:name],
                       remove_header_and_footer: !!options[:remove_header_and_footer],
                       forkable: !!options[:forkable],
+                      solution: !!options[:solution],
                       fis_links: !!options[:fis],
                       aaq: !!options[:aaq],
                       prework: !!options[:prework])
@@ -272,6 +279,7 @@ if options[:align_from_github]
                       name: options[:name],
                       remove_header_and_footer: !!options[:remove_header_and_footer],
                       forkable: !!options[:forkable],
+                      solution: !!options[:solution],
                       fis_links: !!options[:fis],
                       aaq: !!options[:aaq],
                       prework: !!options[:prework])
@@ -307,6 +315,7 @@ if options[:csv_build]
                     remove_header_and_footer: !!options[:remove_header_and_footer],
                     aaq: !!options[:aaq],
                     forkable: !!options[:forkable],
+                    solution: !!options[:solution],
                     branch: options[:branch],
                     git_links: !!options[:git_links])
   abort
@@ -320,6 +329,7 @@ if options[:csv_align]
                     remove_header_and_footer: !!options[:remove_header_and_footer],
                     aaq: !!options[:aaq],
                     forkable: !!options[:forkable],
+                    solution: !!options[:solution],
                     branch: options[:branch],
                     git_links: !!options[:git_links])
   abort
@@ -333,6 +343,7 @@ if options[:build_course]
                     aaq: !!options[:aaq],
                     prework: !!options[:prework],
                     forkable: !!options[:forkable],
+                    solution: !!options[:solution],
                     git_links: !!options[:git_links])
   abort
 end
@@ -345,6 +356,7 @@ if options[:add_to_course]
                       fis_links: !!options[:fis], 
                       remove_header_and_footer: !!options[:remove_header_and_footer],
                       forkable: !!options[:forkable],
+                      solution: !!options[:solution],
                       aaq: !!options[:aaq],
                       prework: !!options[:prework],
                       git_links: !!options[:git_links])
@@ -360,6 +372,7 @@ if options[:update_course_lessons]
                     fis_links: !!options[:fis], 
                     remove_header_and_footer: !!options[:remove_header_and_footer],
                     forkable: !!options[:forkable],
+                    solution: !!options[:solution],
                     aaq: !!options[:aaq],
                     prework: !!options[:prework],
                     git_links: !!options[:git_links])
@@ -376,6 +389,7 @@ if !options[:type]
   if Dir.glob("**/*/").empty?
     options[:type] = "page"
     options[:forkable] = false
+    options[:solution] = false
   else
     options[:type] = "assignment"
   end
@@ -426,6 +440,7 @@ if options[:create_lesson]
                     remove_header_and_footer: !!options[:remove_header_and_footer],
                     only_update_content: !!options[:only_content],
                     forkable: !!options[:forkable],
+                    solution: !!options[:solution],
                     aaq: !!options[:aaq],
                     prework: !!options[:prework])
 end
@@ -445,6 +460,7 @@ if options[:align]
                     remove_header_and_footer: !!options[:remove_header_and_footer],
                     only_update_content: !!options[:only_content],
                     forkable: !!options[:forkable],
+                    solution: !!options[:solution],
                     aaq: !!options[:aaq],
                     prework: !!options[:prework])
 end

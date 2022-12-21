@@ -180,21 +180,29 @@ class RepositoryConverter
   end
 
   def self.create_github_link_header(repo_path, options)
-    # add link to associated repository
-    github_repo_link = "<a class='fis-git-link' href='#{repo_path}' target='_blank' rel='noopener'><img id='repo-img' title='Open GitHub Repo' alt='GitHub Repo' /></a>"
-    
-    # add link to new issue form
-    github_issue_link = "<a class='fis-git-link' href='#{repo_path}/issues/new' target='_blank' rel='noopener'><img id='issue-img' title='Create New Issue' alt='Create New Issue' /></a>"
-    
-    # add link to fork (forking handled by separate Flatiron server, generation of link handled via custom Canvas JS theme file)
+    links = ""
 
+    # add link to fork (forking handled by separate Flatiron server, generation of link handled via custom Canvas JS theme file)
     if (options[:forkable])
-      github_fork_link = "<a class='fis-fork-link' id='fork-link' href='#{repo_path}/fork' target='_blank' rel='noopener'><img id='fork-img' title='Fork This Assignment' alt='Fork This Assignment' /></a>"
-      "<header class='fis-header' style='visibility: hidden;'>#{github_fork_link}#{github_repo_link}#{github_issue_link}</header>"
-    elsif options[:git_links]
-      "<header class='fis-header'>#{github_repo_link}#{github_issue_link}</header>"
+      links += "<a class='fis-fork-link' id='fork-link' href='#{repo_path}/fork' target='_blank' rel='noopener'><img id='fork-img' title='Fork This Assignment' alt='Fork This Assignment' /></a>"
+    end
+
+    # add link to associated repository
+    links += "<a class='fis-git-link' href='#{repo_path}' target='_blank' rel='noopener'><img id='repo-img' title='Open GitHub Repo' alt='GitHub Repo' /></a>"
+
+    # add link to new issue form
+    links += "<a class='fis-git-link' href='#{repo_path}/issues/new' target='_blank' rel='noopener'><img id='issue-img' title='Create New Issue' alt='Create New Issue' /></a>"
+
+    # add link to solution branch
+    if options[:solution]
+      links += "<a class='fis-solution-link' id='solution-link' href='#{repo_path}/tree/solution' target='_blank' rel='noopener'><img id='solution-img' title='Solution' alt='View Solution' /></a>"
+    end
+
+    # return a header with all links inside
+    if options[:git_links]
+      "<header class='fis-header'>#{links}</header>"
     else
-      "<header class='fis-header' style='visibility: hidden;'>#{github_repo_link}#{github_issue_link}</header>"
+      "<header class='fis-header' style='visibility: hidden;'>#{links}</header>"
     end
   end
 
