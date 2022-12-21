@@ -119,6 +119,32 @@ class GithubToCanvas
           sleep(1)
         }
       }
+    when 'add_to_course_local'
+      course_yaml = YAML.load(File.read(options[:yaml_file_to_convert]))
+
+      course_yaml[:modules].each { |module_info|
+        # Create each module
+        created_module_info = CanvasInterface.create_module(options[:course_id], module_info)
+        puts "Module created - #{created_module_info['name']}"
+        module_info[:lessons].each { |lesson|
+          # Create each lesson
+
+          options[:type] = lesson["type"].downcase
+          # split relative path from repository tag in YAML into path and file to match downstream processing expectations
+          options[:filepath] = File.dirname(lesson["repository"])
+          options[:file_to_convert] = File.basename(lesson["repository"])
+          html = RepositoryConverter.local_file_conversion(options)
+          # Add each lesson to it's module
+          html = RepositoryConverter.adjust_converted_html(options, html)
+          created_lesson_info = CanvasInterface.create_lesson(options, lesson["title"], html)
+          lesson = lesson.merge(created_lesson_info)
+          response = CanvasInterface.add_to_module(options[:course_id], created_module_info, lesson)
+          
+          puts "Lesson added to #{created_module_info['name']} - #{lesson['title']}"
+          sleep(1)
+        }
+      }
+ 
     when 'update_course_lessons'
       course_yaml = YAML.load(File.read(options[:file_to_convert]))
       options[:course_id] = course_yaml[:id]
@@ -144,6 +170,33 @@ class GithubToCanvas
           sleep(1)
         }
       }
+    when 'update_course_lessons_local'
+      course_yaml = YAML.load(File.read(options[:yaml_file_to_convert]))
+      options[:course_id] = course_yaml[:id]
+      course_yaml[:modules].each { |module_info|
+        puts "Updating #{module_info[:name]}"
+        module_info[:lessons].each { |lesson|
+          if lesson["repository"] == ""
+            puts "No repository found for #{lesson['title']}"
+            next
+          end
+          options[:id] = lesson['id']
+          options[:type] = lesson["type"].downcase
+          options[:filepath] = File.dirname(lesson["repository"])
+          options[:file_to_convert] = File.basename(lesson["repository"])
+          options[:branch] = 'master'
+          html = RepositoryConverter.local_file_conversion(options)
+          
+          html = RepositoryConverter.adjust_converted_html(options, html)
+          created_lesson_info = CanvasInterface.update_existing_lesson(options, lesson["title"], html)
+          lesson = lesson.merge(created_lesson_info)
+          
+          
+          puts "Lesson updated - #{lesson['title']}"
+          sleep(1)
+        }
+      }
+
     when 'clone_course'
       course_yaml = YAML.load(File.read(options[:file_to_convert]))
       new_dir = "#{course_yaml[:name].downcase.gsub(' ','-')}"
