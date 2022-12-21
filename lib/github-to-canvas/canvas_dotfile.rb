@@ -42,7 +42,10 @@ class CanvasDotfile
         id: response['id'],
         course_id: course.to_i,
         canvas_url: response['html_url'],
-        type: type
+        type: type,
+        grading_type: response['grading_type'],
+        points_possible: response['points_possible'],
+        submission_type: response['submission_types'][0],
       }  
       canvas_data[:lessons] << lesson_data
     end
@@ -56,7 +59,10 @@ class CanvasDotfile
           id: response['id'],
           course_id: course.to_i,
           canvas_url: response['html_url'],
-          type: type
+          type: type,
+          grading_type: response['grading_type'],
+          submission_type: response['submission_types'][0],
+          points_possible: response['points_possible']
         }
       ]
     }

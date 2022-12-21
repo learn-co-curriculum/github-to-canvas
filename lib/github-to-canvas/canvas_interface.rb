@@ -117,7 +117,9 @@ class CanvasInterface
         options[:id] = lesson[:id]
         options[:course_id] = lesson[:course_id]
         options[:type] = lesson[:type]
-        
+        options[:submission_type] = lesson.fetch(:submission_type, 'online_url')
+        options[:grading_type] = lesson.fetch(:grading_type, 'pass_fail')
+        options[:points_possible] = lesson.fetch(:points_possible, 1)
       }
       RepositoryInterface.local_repo_post_submission(options, response)
       puts "Canvas lesson updated. Lesson available at #{response['html_url']}"
@@ -389,10 +391,13 @@ class CanvasInterface
         payload = {
           'assignment[name]' => name,
           'assignment[description]' => html,
-          'assignment[submission_types][]' => "online_url",
-          'assignment[grading_type]' => 'pass_fail',
-          'assignment[points_possible]' => 1
+          'assignment[submission_types][]' => options.fetch(:submission_type, 'online_url'),
+          'assignment[grading_type]' => options.fetch(:grading_type, 'pass_fail'),
+          'assignment[points_possible]' => options.fetch(:points_possible, 1)
         }
+        if options[:illumidesk]
+          payload.merge!(self.illumidesk_payload(options))
+        end
       elsif options[:type] == "discussion"
         payload = {
           'title' => name,
@@ -406,6 +411,7 @@ class CanvasInterface
         }
       end
     end
+    payload
   end
 
   def self.read_lesson(url)
@@ -450,6 +456,42 @@ class CanvasInterface
       end
     end
     lesson_info.to_yaml
+  end
+
+  def self.illumidesk_payload(options)
+    # get content ID: query API for external tools/Illumidesk
+    content_id = self.get_illumidesk_id(options[:course_id])
+
+    # compose URL with repo data: learn-co-curriculum, dsc-json-lab-v2-1, index.ipynb, master
+    repo_info = RepositoryConverter.get_repo_info(options[:filepath])
+    url = "https://flatiron.illumidesk.com/hub/lti/launch?next=%2Fhub%2Fuser-redirect%2Fgit-pull%3Frepo%3Dhttps%253A%252F%252Fgithub.com%252F#{repo_info[:repo_org]}%252F#{repo_info[:repo_name]}%26urlpath%3Dtree%252F#{repo_info[:repo_name]}%252Findex.ipynb%26branch%3D#{options.fetch(:branch, 'master')}"
+    
+    {
+      'assignment[external_tool_tag_attributes]' => {
+        content_id: content_id,
+        content_type: "context_external_tool",
+        custom_params: "",
+        external_data: "",
+        new_tab: "1",
+        url: url
+      }
+    }
+  end
+
+  def self.get_illumidesk_id(course_id)
+    url = "#{ENV['CANVAS_API_PATH']}/courses/#{course_id}/external_tools?search_term=IllumiDesk"
+    response = RestClient.get(url, headers={
+      "Authorization" => "Bearer #{ENV['CANVAS_API_KEY']}"
+    })
+    external_tools = JSON.parse(response)
+    if external_tools.empty?
+      raise "IllumiDesk not enabled for course ID: #{course_id}"
+    else
+      external_tools[0]['id']
+    end
+  rescue
+    puts "IllumiDesk not enabled for course ID: #{course_id}"
+    abort
   end
 
   def self.create_lesson_from_remote(course_id, module_id, lesson_type, raw_url, yaml_file)
