@@ -423,11 +423,13 @@ overwritten if the lesson is updated using the gem.
 - `--save-to-github`, `-s`: If you are are creating or aligning content locally,
   the `.canvas` file is not automatically committed to the repo. This option will
   attempt to commit and push the `.canvas` file to the remote repository.
+
 **DEPRECATED:**
+
 - `--forkable`: Adds a **Fork** button to the Flatiron School HTML header. For
   use with custom Canvas JS to enable Canvas assignment forking workflow for
   Flatiron School students.
-  
+
 Run `github-to-canvas --help` for additional options not listed in this Readme.
 
 ## Examples of Valid Images This Gem Can Convert
