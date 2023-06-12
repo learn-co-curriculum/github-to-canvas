@@ -83,7 +83,7 @@ The GitHub to Canvas gem can be used for the following:
 Navigate into a repository folder cloned down to your local machine and run:
 
 ```sh
-github-to-canvas -c <CANVAS_COURSE_ID> -lr --forkable
+github-to-canvas -c <CANVAS_COURSE_ID> -lr
 ```
 
 The command above will create a Canvas lesson in the course provided. It will
@@ -94,8 +94,7 @@ back to the repository.
 If the lesson type is an assignment, a Fork button will also be added to the
 HTML header. Because the command didn't specify, the type of lesson is determined
 based on the local repo structure - if it has sub-folders, the lesson will become
-an assignment; if there are no sub-folders, the lesson will become a page. If the
-lesson type is a page, the `--forkable` option will be ignored.
+an assignment; if there are no sub-folders, the lesson will become a page.
 
 Creating a lesson this way will also produce a `.canvas` file. This file
 contains info about the Canvas lesson that was created.
@@ -105,14 +104,14 @@ contains info about the Canvas lesson that was created.
 To create from a remote repo, run the following command:
 
 ```sh
-github-to-canvas --create-from-github <URL> --course <CANVAS_COURSE_ID> --type <TYPE> -lr --forkable
+github-to-canvas --create-from-github <URL> --course <CANVAS_COURSE_ID> --type <TYPE> -lr
 ```
 
 This command will read a GitHub markdown based on the provided URL and create a
 Canvas lesson based on it. We need to provide the Course ID and the type of
 lesson (`page` or `assignment`) as type can't be determined automatically. We'll
-also continue to use `-lr --forkable` like the previous command to set up the
-lesson the same way as before.
+also continue to use `-lr` like the previous command to set up the lesson the
+same way as before.
 
 The repository must be public in order to read the markdown file.
 
@@ -134,7 +133,7 @@ have a `.canvas` file present in the repo. If that file is present, you can run
 the following command to update the listed Canvas lesson automatically:
 
 ```sh
-github-to-canvas -a -lr --forkable
+github-to-canvas -a -lr
 ```
 
 If you don't have or want to use the `.canvas` file, you can also specify the
@@ -142,7 +141,7 @@ course ID and lesson ID. Running this command will add the specified course to
 the .canvas file in the local repo:
 
 ```sh
-github-to-canvas -a --course <CANVAS_COURSE_ID> --id <CANVAS_LESSON_ID> -lr --forkable
+github-to-canvas -a --course <CANVAS_COURSE_ID> --id <CANVAS_LESSON_ID> -lr
 ```
 
 Canvas course and lesson IDs can be found in the URL.
@@ -152,7 +151,7 @@ Canvas course and lesson IDs can be found in the URL.
 You can update an existing Canvas course using a remote GitHub repository like so:
 
 ```sh
-github-to-canvas --align-from-github <URL> --course <COURSE_ID> --id <LESSON_ID> --type <TYPE> -lr --forkable
+github-to-canvas --align-from-github <URL> --course <COURSE_ID> --id <LESSON_ID> --type <TYPE> -lr
 ```
 
 This will read remote markdown using the provided URL and update a Canvas course
@@ -271,7 +270,7 @@ With the necessary data configured, use the `--build-course` option and pass in
 the course's YAML file:
 
 ```sh
-github-to-canvas --build-course course_structure.yml -lr --forkable
+github-to-canvas --build-course course_structure.yml -lr
 ```
 
 This command will cause the following to happen:
@@ -298,7 +297,7 @@ Use the resulting file (in this example, `your_new_course.yml`) to update all le
 a course based on their GitHub repo:
 
 ```sh
-github-to-canvas --update-course YAML_FILE -lr --forkable
+github-to-canvas --update-course YAML_FILE -lr
 ```
 
 The gem will iterate over the data and update every lesson according to the
@@ -408,9 +407,6 @@ overwritten if the lesson is updated using the gem.
 - `--fis-links`, `-l`: Adds additional Flatiron School HTML header after
   markdown conversion, including links back to the GitHub repo and it's issue
   form.
-- `--forkable`: Adds a **Fork** button to the Flatiron School HTML header. For
-  use with custom Canvas JS to enable Canvas assignment forking workflow for
-  Flatiron School students.
 - `--remove-header-and-footer`, `-r`: Removes top lesson header and any Flatiron
   School specific footer links before converting to HTML. Removing top lesson
   header prevents duplicate titles while viewing in Canvas.
@@ -427,7 +423,11 @@ overwritten if the lesson is updated using the gem.
 - `--save-to-github`, `-s`: If you are are creating or aligning content locally,
   the `.canvas` file is not automatically committed to the repo. This option will
   attempt to commit and push the `.canvas` file to the remote repository.
-
+**DEPRECATED:**
+- `--forkable`: Adds a **Fork** button to the Flatiron School HTML header. For
+  use with custom Canvas JS to enable Canvas assignment forking workflow for
+  Flatiron School students.
+  
 Run `github-to-canvas --help` for additional options not listed in this Readme.
 
 ## Examples of Valid Images This Gem Can Convert
