@@ -8,11 +8,14 @@ to HTML, and pushes it to Canvas using the Canvas API. This gem can also update
 existing Canvas lessons, allowing continuous alignment of content between GitHub
 and Canvas.
 
-This gem is built for use internally at [Flatiron School][], so some features may be
-specific to Flatiron School branding and needs. Access to the
-[Canvas LMS API][] and the ability to add pages and assignments to a Canvas
-course are required. Write access to the GitHub repository being converted is
-also required for some features.
+This gem is built for use internally at [Flatiron School][], so some features
+may be specific to Flatiron School branding and needs. Access to the [Canvas LMS
+API][] and the ability to add pages and assignments to a Canvas course are
+required. Write access to the GitHub repository being converted is also required
+for some features.
+
+NOTE: the `--forkable` option is now deprecated! Please be sure to update any
+commands you use to remove it.
 
 ## Installation
 
@@ -27,7 +30,8 @@ your Canvas Account Settings and under **Approved Integrations**, create a
 **New Access Token**. You will need to store this API key as an `ENV` variable
 called `CANVAS_API_KEY`.
 
-If you are using Zsh, the following command will add your new key to the top of `~/.zshrc`:
+If you are using Zsh, the following command will add your new key to the top of
+`~/.zshrc`:
 
 ```sh
 echo "$(export 'CANVAS_API_KEY=<your-new-API-key-here>' | cat - ~/.zshrc)" > ~/.zshrc
@@ -43,9 +47,10 @@ echo "$(export 'CANVAS_API_KEY=<your-new-API-key-here>' | cat - ~/.bash_profile)
 
 ### Add Canvas API Base Path
 
-The exact Canvas API path is specific to where your Canvas LMS is located. For example,
-Flatiron School's base path is `https://learning.flatironschool.com/api/v1`. Add this path
-as an `ENV` variable like the API key. **Do not add a `/` at the end after `/api/v1`.**
+The exact Canvas API path is specific to where your Canvas LMS is located. For
+example, Flatiron School's base path is
+`https://learning.flatironschool.com/api/v1`. Add this path as an `ENV` variable
+like the API key. **Do not add a `/` at the end after `/api/v1`.**
 
 ```sh
 echo "$(export 'CANVAS_API_PATH=<your-base-api-path>' | cat  - ~/.zshrc)" > ~/.zshrc
@@ -57,9 +62,10 @@ Or for Bash:
 echo "$(export 'CANVAS_API_PATH=<your-base-api-path>' | cat  - ~/.bash_profile)" > ~/.bash_profile
 ```
 
-After both the API key and path are added to `~/.zshrc`, run `source ~/.zshrc` (`source ~/.bash_profile` for Bash)
-to make them available in your current terminal. You can verify these variables
-are present by running `ENV` and finding them in the output list.
+After both the API key and path are added to `~/.zshrc`, run `source ~/.zshrc`
+(`source ~/.bash_profile` for Bash) to make them available in your current
+terminal. You can verify these variables are present by running `ENV` and
+finding them in the output list.
 
 ## Common Uses
 
@@ -83,21 +89,18 @@ The GitHub to Canvas gem can be used for the following:
 Navigate into a repository folder cloned down to your local machine and run:
 
 ```sh
-github-to-canvas -c <CANVAS_COURSE_ID> -lr
+github-to-canvas -c <CANVAS_COURSE_ID> --type <TYPE> -lr
 ```
 
-The command above will create a Canvas lesson in the course provided. It will
-also remove the repositories top-level header and remove any old Flatiron
-branded footers. It will also add an HTML header for Canvas that includes links
-back to the repository.
-
-If the lesson type is an assignment, a Fork button will also be added to the
-HTML header. Because the command didn't specify, the type of lesson is determined
-based on the local repo structure - if it has sub-folders, the lesson will become
-an assignment; if there are no sub-folders, the lesson will become a page.
+The command above will create a Canvas lesson of the given type (page or
+assignment) in the course indicated. It will also remove the repository's
+top-level header and add an HTML header for Canvas that includes links to the
+GitHub repository.
 
 Creating a lesson this way will also produce a `.canvas` file. This file
-contains info about the Canvas lesson that was created.
+contains info about the Canvas lesson that was created; it is used with a GitHub
+workflow that automatically updates the Canvas page when a lesson's README is
+updated in GitHub.
 
 #### Create a Canvas Lesson from a Remote Repository <a name="createremote"></a>
 
@@ -107,13 +110,9 @@ To create from a remote repo, run the following command:
 github-to-canvas --create-from-github <URL> --course <CANVAS_COURSE_ID> --type <TYPE> -lr
 ```
 
-This command will read a GitHub markdown based on the provided URL and create a
-Canvas lesson based on it. We need to provide the Course ID and the type of
-lesson (`page` or `assignment`) as type can't be determined automatically. We'll
-also continue to use `-lr` like the previous command to set up the lesson the
-same way as before.
-
-The repository must be public in order to read the markdown file.
+This command works the same as the one above, except that it pulls the content
+from a remote repo rather than a locally cloned repo. The repository must be
+public in order to read the markdown file.
 
 #### Read a Remote Repository as HTML <a name="read"></a>
 
@@ -177,9 +176,9 @@ github-to-canvas --query <CANVAS_COURSE_ID>
 ```
 
 This command will use the Canvas API to read a course's information, including
-its module and lesson structure and lesson URLs. YAML markup will be produced as a result. This
-output can be directly saved to a file, which will make the next step a little
-easier:
+its module and lesson structure and lesson URLs. YAML markup will be produced as
+a result. This output can be directly saved to a file, which will make the next
+step a little easier:
 
 ```sh
 github-to-canvas --query <CANVAS_COURSE_ID> > query_results.yml
@@ -222,7 +221,8 @@ The output YAML will not include associated GitHub repository information.
 
 #### Map GitHub Repositories to a Canvas Course YAML file <a name="map"></a>
 
-To associate repositories to an existing course YAML, the following command can be used:
+To associate repositories to an existing course YAML, the following command can
+be used:
 
 ```sh
 github-to-canvas --map <YAML_FILE>
@@ -277,24 +277,25 @@ This command will cause the following to happen:
 
 - Create a Canvas course using the top level `:name:` in the YAML data
 - Create the first module
-- Create the first lesson using the repository, title and type, as well as additional command options
+- Create the first lesson using the repository, title and type, as well as
+  additional command options
 - Add the newly created lesson to the current module
 - Create the second lesson and add it to the module...
 - Repeat process until all modules and lessons are created
 
 #### Update Lessons in an Existing Course from a YAML file <a name="updatecourse"></a>
 
-The GitHub to Canvas gem can be used to update all lessons in a course
-with a single command. To do this, you will need an up-to-date course YAML file with repositories
-mapped to each lesson.
+The GitHub to Canvas gem can be used to update all lessons in a course with a
+single command. To do this, you will need an up-to-date course YAML file with
+repositories mapped to each lesson.
 
 ```sh
 github-to-canvas --query <COURSE_ID> > query_results.yml
 github-to-canvas --map query_results.yml > your_new_course.yml
 ```
 
-Use the resulting file (in this example, `your_new_course.yml`) to update all lessons in
-a course based on their GitHub repo:
+Use the resulting file (in this example, `your_new_course.yml`) to update all
+lessons in a course based on their GitHub repo:
 
 ```sh
 github-to-canvas --update-course YAML_FILE -lr
@@ -312,7 +313,8 @@ Rouge tokenizes the fenced code blocks and generates HTML elements with CSS
 classes to style code blocks. The classes generated by Rouge are intended to
 work with [Pygments](https://pygments.org/).
 
-You can download and customize CSS themes for the classes generated by Rouge at this site:
+You can download and customize CSS themes for the classes generated by Rouge at
+this site:
 
 - [http://jwarby.github.io/jekyll-pygments-themes/languages/javascript.html](http://jwarby.github.io/jekyll-pygments-themes/languages/javascript.html)
 
@@ -326,12 +328,12 @@ so the CSS can run on each page.
 
 The Canvas API renders all HTML it receives. If your repository's markdown
 includes HTML that is not meant to be rendered, the content will be rendered as
-part of the page's HTML, resulting in unusual display errors in Canvas. Examples of
-this would be lessons on HTML or JavaScript that include HTML code snippets.
+part of the page's HTML, resulting in unusual display errors in Canvas. Examples
+of this would be lessons on HTML or JavaScript that include HTML code snippets.
 
 To fix any rendering issues in Canvas, go to the Canvas WYSIWYG editor for the
-afflicted lesson. Click the HTML editor option (`</>` button in the lower right) to
-switch to HTML.
+afflicted lesson. Click the HTML editor option (`</>` button in the lower right)
+to switch to HTML.
 
 Read the GitHub repo as HTML:
 
@@ -356,15 +358,16 @@ been implemented.
 
 ### Markdown Formatting Issues Cause Errors in Canvas
 
-An empty line should separate individual markdown headers, paragraphs and code snippets
-in the markdown. Without these empty lines, the contents will be interpreted as one
-continuous paragraph and ignore formatting.
+An empty line should separate individual markdown headers, paragraphs and code
+snippets in the markdown. Without these empty lines, the contents will be
+interpreted as one continuous paragraph and ignore formatting.
 
 ### New Repos That Use a `main` Branch
 
-If you are using a new GitHub repository that uses a `main` branch, you may not be able to
-create or update from a remote repository. You can still create and update from a local
-repository by using the `--branch` (`-b`) option and specifying `main` as the branch.
+If you are using a new GitHub repository that uses a `main` branch, you may not
+be able to create or update from a remote repository. You can still create and
+update from a local repository by using the `--branch` (`-b`) option and
+specifying `main` as the branch.
 
 A fix is planned for this issue, but not implemented.
 
@@ -374,8 +377,9 @@ Using this gem, you can maintain Canvas courses in multiple ways - either by
 creating and updating individual Canvas lessons or through the YAML file process.
 
 At Flatiron School, we use the Canvas blueprint course feature. We use the
-github-to-canvas gem to update the blueprint copy of lessons. These updates will appear
-in future copies of the course or when synced down associated courses in Canvas.
+github-to-canvas gem to update the blueprint copy of lessons. These updates will
+appear in future copies of the course or when synced down associated courses in
+Canvas.
 
 ![github-to-canvas workflow chart](./images/github-to-canvas_workflow.png)
 
